@@ -1,6 +1,6 @@
 # Ethio-Map
 
-Ethio-Map is a web-based contribution platform for mapping and sharing geographic information about Ethiopia.
+Ethio-Map is a web-based  platform for mapping and sharing geographic information about Ethiopia.
 
 The project includes:
 
