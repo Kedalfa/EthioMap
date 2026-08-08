@@ -11,8 +11,19 @@ CREATE TABLE IF NOT EXISTS datasets (
     content_type TEXT NOT NULL DEFAULT 'application/geo+json',
     feature_count INTEGER NOT NULL DEFAULT 0,
     geojson JSONB NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    description TEXT NOT NULL DEFAULT '',
+    coordinate_reference_system TEXT NOT NULL DEFAULT 'EPSG:4326',
+    owner TEXT NOT NULL DEFAULT '',
+    source TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE datasets ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+ALTER TABLE datasets ADD COLUMN IF NOT EXISTS coordinate_reference_system TEXT NOT NULL DEFAULT 'EPSG:4326';
+ALTER TABLE datasets ADD COLUMN IF NOT EXISTS owner TEXT NOT NULL DEFAULT '';
+ALTER TABLE datasets ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT '';
+ALTER TABLE datasets ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
 -- Store each GeoJSON feature separately for spatial queries and indexing.
 CREATE TABLE IF NOT EXISTS dataset_features (
