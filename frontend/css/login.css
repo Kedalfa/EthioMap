@@ -1,0 +1,38 @@
+/* Reset default spacing and use predictable box sizing. */
+*{margin:0; padding:0; box-sizing:border-box;}
+
+/* Center the login screen over the dark branded background. */
+body{font-family:"DM Sans",sans-serif; background:linear-gradient(135deg,#071b2d,#0c344d); display:flex; justify-content:center; align-items:center; height:100vh;}
+
+/* Limit the login content width while keeping it responsive. */
+.login-container{width:100%; max-width:420px; padding:20px;}
+
+.logo{text-align:center; color:white; margin-bottom:25px;}
+
+.logo-icon{background-image: url(../flag.jpg); background-size: contain; background-repeat: no-repeat; background-position: center;width:70px; height:70px; margin:auto; background:#00a78d; color:white; border-radius:18px 18px 18px 4px; display:flex; justify-content:center; align-items:center; font-size:34px; font-weight:bold; transform:rotate(-8deg);}
+
+.logo h1{margin-top:18px; font-family:"Space Grotesk",sans-serif;}
+
+.logo p{color:#b6c8d2; font-size:14px;}
+
+.login-card{background:white; padding:35px; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,.25);}
+
+.login-card h2{text-align:center; color:#071b2d;}
+
+.subtitle{text-align:center; color:#667; margin:12px 0 30px; font-size:14px;}
+
+.input-group{margin-bottom:18px;}
+
+label{display:block; margin-bottom:7px; font-weight:600;}
+
+input{width:100%; padding:13px; border:1px solid #d8d8d8; border-radius:8px; outline:none; font-size:15px;}
+
+input:focus{border-color:#00a78d;}
+
+button{width:100%; padding:14px; background:#00a78d; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer; transition:.3s;}
+
+button:hover{background:#008b74;}
+
+.back{display:block; text-align:center; margin-top:20px; text-decoration:none; color:#0c344d; font-weight:600;}
+
+.back:hover{color:#00a78d;}
