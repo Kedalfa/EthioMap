@@ -28,6 +28,12 @@ const homeMarker = L.marker(HOME_COORDINATES, { icon: homeIcon })
     .addTo(map)
     .bindPopup('<strong>Home</strong><br>8°57\'46.9"N, 38°46\'07.4"E');
 
+homeMarker.on('click', (event) => {
+    L.DomEvent.stopPropagation(event);
+    homeMarker.closePopup();
+    showLocationSidebar({ title: 'Home', coordinates: `${HOME_COORDINATES[0].toFixed(5)}, ${HOME_COORDINATES[1].toFixed(5)}`, details: 'Saved place' });
+});
+
 // Keep basemaps in their own layer so switching imagery never removes data,
 // measurement, or search-result overlays already drawn on the map.
 const basemapSelect = document.getElementById('basemap-select');
@@ -63,17 +69,82 @@ function featurePopup(feature) {
     return rows.length ? rows.join('<br>') : 'GeoJSON feature';
 }
 
+const locationSidebar = document.getElementById('location-sidebar');
+const locationSidebarContent = document.getElementById('location-sidebar-content');
+const closeLocationSidebar = document.getElementById('close-location-sidebar');
+
+function showLocationSidebar({ title = 'Selected place', coordinates, details = '' }) {
+    locationSidebarContent.innerHTML = `<div class="location-card"><h3>${escapeHtml(title)}</h3><div class="location-field"><span>Coordinates</span><strong>${escapeHtml(coordinates)}</strong></div>${details ? `<div class="location-details"><span>Location information</span><div>${details}</div></div>` : ''}</div>`;
+    locationSidebar.hidden = false;
+}
+
+function mostSpecificOsmName(result) {
+    const address = result.address || {};
+    if (result.name) return result.name;
+    if (address.amenity) return address.amenity;
+    if (address.shop) return address.shop;
+    if (address.tourism) return address.tourism;
+    if (address.building) return address.building;
+    if (address.house_number && address.road) return `${address.house_number} ${address.road}`;
+    return address.road || address.neighbourhood || address.suburb || address.village ||
+        address.town || address.city || address.county || address.state || address.country ||
+        'Selected place';
+}
+
+closeLocationSidebar.addEventListener('click', () => {
+    locationSidebar.hidden = true;
+    if (reverseMarker) {
+        map.removeLayer(reverseMarker);
+        reverseMarker = null;
+    }
+    map.closePopup();
+});
+
 function createGeoJsonLayer(geojson, color) {
     return L.geoJSON(geojson, {
         style: { color, weight: 2, fillColor: color, fillOpacity: .2 },
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, color, fillColor: color, fillOpacity: .8 }),
-        onEachFeature: (feature, layer) => layer.bindPopup(featurePopup(feature))
+        onEachFeature: (feature, layer) => {
+            layer.on('click', (event) => {
+                if (mapMode === 'distance' || mapMode === 'area') {
+                    L.DomEvent.stopPropagation(event);
+                    addMeasurementPoint(event.latlng);
+                    return;
+                }
+                L.DomEvent.stopPropagation(event);
+                reverseGeocode(event.latlng);
+            });
+        }
     });
 }
 
 function updateActiveLayerCount() {
+    if (!activeLayerCount) return;
     const activeCount = Object.values(layerRegistry).filter((entry) => entry.active).length;
     activeLayerCount.textContent = `${activeCount} active`;
+}
+
+function setLayerVisibility(entry, visible) {
+    entry.active = visible;
+    const toggle = entry.row?.querySelector('.layer-toggle');
+    if (toggle) toggle.checked = visible;
+    if (visible) entry.layer.addTo(map);
+    else map.removeLayer(entry.layer);
+}
+
+function showAllDatasetLayers() {
+    Object.values(layerRegistry).forEach((entry) => setLayerVisibility(entry, true));
+    updateActiveLayerCount();
+}
+
+function showOnlyDatasetLayer(location) {
+    Object.values(layerRegistry).forEach((entry) => {
+        const sameDataset = location.datasetId && entry.datasetId === location.datasetId;
+        const sameName = !location.datasetId
+            && datasetDisplayName(entry.name).toLowerCase() === datasetDisplayName(location.name).toLowerCase();
+        setLayerVisibility(entry, Boolean(sameDataset || sameName));
+    });
+    updateActiveLayerCount();
 }
 
 // Dataset names loaded from the datasets table are searchable.
@@ -110,6 +181,7 @@ function showSearchResults(matches) {
 
 async function selectLocation(location) {
     if (location.name === 'Home') {
+        showAllDatasetLayers();
         map.setView(HOME_COORDINATES, 19);
         homeMarker.openPopup();
         searchInput.value = 'Home';
@@ -129,6 +201,7 @@ async function selectLocation(location) {
                 return;
             }
         }
+        showOnlyDatasetLayer(location);
         const featureLayer = location.featureIndex === undefined
             ? savedLayer.layer
             : savedLayer.layer.getLayers()[location.featureIndex];
@@ -150,16 +223,30 @@ async function selectLocation(location) {
 
 function runSearch() {
     const query = searchInput.value.trim();
-    if (!query) return (searchResults.hidden = true);
+    if (!query) {
+        showAllDatasetLayers();
+        return (searchResults.hidden = true);
+    }
     const match = databaseLocations.find((location) => location.name.toLowerCase() === query.toLowerCase());
     if (match) return selectLocation(match);
     showSearchResults(databaseLocations.filter((location) => location.name.toLowerCase().includes(query.toLowerCase())));
 }
 
+function showSearchSuggestions() {
+    const query = searchInput.value.trim().toLowerCase();
+    const matches = query
+        ? databaseLocations.filter((location) => location.name.toLowerCase().includes(query))
+        : databaseLocations;
+    showSearchResults(matches.slice(0, 6));
+}
+
+searchInput?.addEventListener('focus', showSearchSuggestions);
+searchInput?.addEventListener('click', showSearchSuggestions);
 searchInput?.addEventListener('input', () => {
     const query = searchInput.value.trim().toLowerCase();
     if (!query) {
-        searchResults.hidden = true;
+        showSearchSuggestions();
+        showAllDatasetLayers();
         map.setView([9.03, 38.74], 6);
         if (searchMarker) {
             map.removeLayer(searchMarker);
@@ -317,6 +404,8 @@ function addMeasurementPoint(latlng) {
 async function reverseGeocode(latlng) {
     if (reverseMarker) map.removeLayer(reverseMarker);
     reverseMarker = L.marker(latlng).addTo(map);
+    const coordinates = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+    showLocationSidebar({ title: 'Loading location...', coordinates, details: 'Looking up location information...' });
     showFeedback('Looking up location information...');
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latlng.lat}&lon=${latlng.lng}`, {
@@ -324,12 +413,11 @@ async function reverseGeocode(latlng) {
         });
         if (!response.ok) throw new Error(`Reverse geocoding failed with status ${response.status}`);
         const result = await response.json();
-        const address = result.display_name || `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
-        reverseMarker.bindPopup(`<strong>Location information</strong><br>${address}`).openPopup();
+        const address = result.display_name || coordinates;
+        showLocationSidebar({ title: mostSpecificOsmName(result), coordinates, details: escapeHtml(address) });
         showFeedback(`${address} (${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)})`);
     } catch (error) {
-        const coordinates = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
-        reverseMarker.bindPopup(`<strong>Coordinates</strong><br>${coordinates}<br><small>Address lookup unavailable.</small>`).openPopup();
+        showLocationSidebar({ title: 'Selected place', coordinates, details: 'Address lookup unavailable.' });
         showFeedback(`Address lookup unavailable. Coordinates: ${coordinates}`);
     }
 }
@@ -355,20 +443,22 @@ function addUploadedLayer(file, geojson, datasetId = null, fitToLayer = true) {
     layerRegistry[key] = { layer, active: true, name: file.name, datasetId, metadata: file.metadata || { description: '', coordinateReferenceSystem: 'EPSG:4326', owner: '', source: '' } };
     if (datasetId) savedDatasetLayers.set(datasetId, layerRegistry[key]);
 
-    const row = document.createElement('div');
-    row.className = 'layer-row uploaded-layer-row';
-    row.innerHTML = `<span class="layer-color" style="background:${color}"></span><div class="layer-info"><strong class="dataset-title">${escapeHtml(file.name)}</strong><span class="dataset-subtitle">Uploaded GeoJSON</span></div><div class="dataset-actions"><button type="button" class="dataset-edit">Edit</button><button type="button" class="dataset-remove">Remove</button><div class="form-check form-switch m-0"><input class="form-check-input layer-toggle" type="checkbox" checked></div></div>`;
-    layerRegistry[key].row = row;
-    const toggle = row.querySelector('.layer-toggle');
-    toggle.addEventListener('change', () => {
-        layerRegistry[key].active = toggle.checked;
-        if (toggle.checked) layer.addTo(map);
-        else map.removeLayer(layer);
-        updateActiveLayerCount();
-    });
-    row.querySelector('.dataset-edit').addEventListener('click', () => openMetadataEditor(key));
-    row.querySelector('.dataset-remove').addEventListener('click', () => removeDataset(key));
-    uploadedLayers.appendChild(row);
+    if (uploadedLayers) {
+        const row = document.createElement('div');
+        row.className = 'layer-row uploaded-layer-row';
+        row.innerHTML = `<span class="layer-color" style="background:${color}"></span><div class="layer-info"><strong class="dataset-title">${escapeHtml(file.name)}</strong><span class="dataset-subtitle">Uploaded GeoJSON</span></div><div class="dataset-actions"><button type="button" class="dataset-edit">Edit</button><button type="button" class="dataset-remove">Remove</button><div class="form-check form-switch m-0"><input class="form-check-input layer-toggle" type="checkbox" checked></div></div>`;
+        layerRegistry[key].row = row;
+        const toggle = row.querySelector('.layer-toggle');
+        toggle.addEventListener('change', () => {
+            layerRegistry[key].active = toggle.checked;
+            if (toggle.checked) layer.addTo(map);
+            else map.removeLayer(layer);
+            updateActiveLayerCount();
+        });
+        row.querySelector('.dataset-edit').addEventListener('click', () => openMetadataEditor(key));
+        row.querySelector('.dataset-remove').addEventListener('click', () => removeDataset(key));
+        uploadedLayers.appendChild(row);
+    }
     updateActiveLayerCount();
 
     // Saved datasets are loaded silently at startup so the default Ethiopia
@@ -451,7 +541,7 @@ metadataForm.addEventListener('submit', async (event) => {
             entry.metadata = result.metadata;
         }
         entry.name = name || entry.name;
-        entry.row.querySelector('.dataset-title').textContent = entry.name;
+        if (entry.row) entry.row.querySelector('.dataset-title').textContent = entry.name;
         metadataKey = null;
         metadataDialog.close();
         showFeedback(`Metadata updated for "${entry.name}".`);

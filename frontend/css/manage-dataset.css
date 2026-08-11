@@ -1,0 +1,46 @@
+:root { --ink:#071b2d; --muted:#6e8090; --line:#e4ebef; --teal:#00a78d; }
+* { box-sizing:border-box; }
+html, body { min-height:100%; margin:0; color:var(--ink); font-family:"DM Sans",sans-serif; background:#edf3f4; }
+.topbar { min-height:70px; padding:0 6vw; display:flex; align-items:center; color:white; background:linear-gradient(110deg,#071b2d,#104457); }
+.brand { display:flex; align-items:center; gap:11px; color:white; text-decoration:none; }
+.brand-mark { width:42px; height:42px; display:grid; place-items:center; color:white; font:21px Georgia,serif; background:#087d6d; border-radius:10px 10px 10px 2px; }
+.brand strong { display:block; font:18px "Space Grotesk",sans-serif; }
+.brand small { display:block; color:#9fb1bd; font-size:10px; letter-spacing:1.2px; text-transform:uppercase; }
+.back-link { margin-left:auto; padding:9px 14px; color:#8ce4d1; font-size:12px; text-decoration:none; border:1px solid #315066; border-radius:7px; }
+.back-link:hover { color:white; background:#163249; }
+.page { width:min(1080px, calc(100% - 40px)); margin:0 auto; padding:48px 0 70px; }
+.page-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:26px; }
+.eyebrow { color:var(--teal); font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+h1, h2 { font-family:"Space Grotesk",sans-serif; }
+h1 { margin:6px 0 6px; font-size:32px; }
+.page-heading p { margin:0; color:var(--muted); }
+.tag { padding:7px 11px; color:#087d6d; font-size:12px; font-weight:700; white-space:nowrap; background:#e6f7f3; border-radius:20px; }
+.dataset-search-wrap { position:relative; margin-bottom:20px; }
+.dataset-search-wrap input { width:100%; height:44px; margin:0; padding:0 16px 0 42px; color:var(--ink); background:white; border:1px solid #d9e9e7; border-radius:9px; outline:none; font-size:13px; }
+.dataset-search-wrap input:focus { border-color:var(--teal); box-shadow:0 0 0 3px #00a78d33; }
+.dataset-search-icon { position:absolute; z-index:1; top:10px; left:15px; color:var(--muted); font-size:21px; line-height:1; }
+.dataset-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+.dataset-card { padding:20px; background:white; border:1px solid #dfe9e8; border-radius:12px; box-shadow:0 8px 24px #0520330d; }
+.dataset-card-head { display:flex; align-items:flex-start; gap:12px; }
+.layer-color { flex:0 0 auto; width:12px; height:12px; margin-top:5px; background:#7257a5; border-radius:3px; }
+.dataset-card h2 { flex:1; margin:0; font-size:17px; overflow-wrap:anywhere; }
+.dataset-card p { margin:8px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
+.dataset-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+.dataset-meta span { display:block; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.6px; }
+.dataset-meta strong { display:block; margin-top:3px; font-size:12px; overflow-wrap:anywhere; }
+.dataset-actions { display:flex; gap:8px; margin-top:18px; }
+.dataset-actions button { padding:8px 11px; color:#087d6d; font-size:11px; background:white; border:1px solid #d9e9e7; border-radius:6px; cursor:pointer; }
+.dataset-actions button:hover { background:#e6f7f3; }
+.dataset-actions .remove { color:#b42318; border-color:#f0c9c5; }
+.empty-state { grid-column:1 / -1; padding:50px 20px; color:var(--muted); text-align:center; background:white; border:1px dashed #cbdcda; border-radius:12px; }
+.feedback { margin:-10px 0 18px; padding:10px 14px; color:#087d6d; font-size:12px; background:#e6f7f3; border-radius:7px; }
+dialog { width:min(440px,calc(100% - 32px)); padding:0; border:0; border-radius:12px; box-shadow:0 20px 60px #05203355; }
+dialog::backdrop { background:#071b2d88; }
+dialog form { padding:22px; }
+dialog h2 { margin:0 0 16px; font-size:20px; }
+label { display:block; margin-top:10px; color:#526977; font-size:11px; font-weight:700; }
+input, textarea { display:block; width:100%; margin-top:5px; padding:8px; color:var(--ink); border:1px solid #d9e9e7; border-radius:6px; font:12px "DM Sans",sans-serif; }
+.dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+.dialog-actions button { padding:8px 12px; border:1px solid #d9e9e7; border-radius:6px; background:white; cursor:pointer; }
+.dialog-actions .primary { color:white; background:var(--teal); border-color:var(--teal); }
+@media (max-width:600px) { .topbar { padding:0 20px; } .page { width:calc(100% - 28px); padding-top:30px; } .page-heading { align-items:flex-start; flex-direction:column; } h1 { font-size:27px; } }

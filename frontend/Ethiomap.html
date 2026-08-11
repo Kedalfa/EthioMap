@@ -25,12 +25,6 @@
         <button class="search-btn" aria-label="Search">⌕</button>
       </div>
       <div class="top-actions">
-        <label class="basemap-picker" for="basemap-select">Basemap
-          <select id="basemap-select" aria-label="Choose basemap">
-            <option value="street">Street map</option>
-            <option value="satellite">Satellite</option>
-          </select>
-        </label>
         <button class="upload-dataset" id="uploadDatasetBtn" type="button">Upload GeoJSON</button>
         <input id="geojsonFileInput" type="file" accept=".geojson,.json,application/geo+json,application/json" hidden>
         <button class="icon-button" title="Help" disabled>Help</button>
@@ -45,11 +39,14 @@
         <!-- Static layer list shown for visual presentation only. -->
         <div class="panel-head"><div class="eyebrow">Live map</div><h1>Explore Ethiopia</h1><p>Preview the interface and map layer presentation.</p><button class="panel-toggle" type="button" aria-label="Collapse side panel" aria-expanded="true">−</button></div>
         <div class="panel-scroll">
-          <div class="d-flex justify-content-between align-items-center"><div class="section-label mb-0">Map layers</div><span id="active-layer-count" class="tag">0 active</span></div>
-          <div>
-            <div id="uploaded-layers"></div>
-          </div>
-          <div class="measurement-panel">
+          <section id="panel-home" class="panel-page">
+            <div class="panel-intro">
+              <div class="eyebrow">Map workspace</div>
+              <h2>Explore Ethiopia</h2>
+              <p>Use the map tools to explore locations and measure distances or areas.</p>
+            </div>
+            <a id="manage-dataset" class="manage-dataset-button" href="dataset-management.html">Manage Dataset</a>
+            <div class="measurement-panel">
             <div class="section-label">Measure on map</div>
             <div class="measurement-buttons">
               <button id="measure-distance" type="button" title="Measure distance by clicking points on the map" aria-label="Measure distance">Distance</button>
@@ -57,10 +54,27 @@
               <button id="clear-measurement" type="button" title="Clear measurement" aria-label="Clear measurement">Clear</button>
             </div>
             <p class="measurement-help">Choose a tool, then click points on the map. For area, click polygon corners in boundary order.</p>
-          </div>
+            </div>
+          </section>
         </div>
+        <!-- Compatibility containers for map-side layer state; the visible list is on manage-dataset.html. -->
+        <div id="uploaded-layers" hidden></div>
+        <span id="active-layer-count" hidden>0 active</span>
+      </aside>
+      <aside id="location-sidebar" class="location-sidebar" hidden aria-live="polite">
+        <div class="location-sidebar-head">
+          <div><div class="eyebrow">Selected place</div><h2>Location information</h2></div>
+          <button id="close-location-sidebar" class="location-sidebar-close" type="button" aria-label="Close location information">×</button>
+        </div>
+        <div id="location-sidebar-content" class="location-sidebar-content"></div>
       </aside>
       <div class="map-tools" aria-label="Map controls">
+        <label class="basemap-picker" for="basemap-select">Basemap
+          <select id="basemap-select" aria-label="Choose basemap">
+            <option value="street">Street map</option>
+            <option value="satellite">Satellite</option>
+          </select>
+        </label>
         <button id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
         <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
         <button id="reset-view" type="button" title="Locate Ethiopia" aria-label="Reset view">⌖</button>
@@ -87,6 +101,6 @@
   <!-- Load Leaflet first because app.js uses the global L object. -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <!-- Load the project map behavior after the page elements exist. -->
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=20260809-2"></script>
 </body>
 </html>
