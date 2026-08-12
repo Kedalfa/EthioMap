@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EthioMap | Activity Log</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
+    <nav class="top-nav">
+      <span id="user-display" class="user-display"></span>
+      <a href="dashboard.html" class="nav-link">← Dashboard</a>
+      <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
+    </nav>
+  </header>
+  <main class="dash-main">
+    <div class="page-heading">
+      <div><div class="eyebrow">Admin</div><h1>Activity Log</h1><p>Full history of every action performed in the system.</p></div>
+      <span id="log-count" class="tag">Loading…</span>
+    </div>
+    <!-- Filters -->
+    <div class="filter-row">
+      <input id="filter-username" type="search" placeholder="Filter by username…" autocomplete="off">
+      <select id="filter-action">
+        <option value="">All actions</option>
+        <option value="login">Login</option>
+        <option value="logout">Logout</option>
+        <option value="upload">Upload</option>
+        <option value="edit">Edit</option>
+        <option value="delete">Delete</option>
+        <option value="create_user">Create user</option>
+        <option value="deactivate_user">Deactivate user</option>
+        <option value="activate_user">Activate user</option>
+        <option value="account_locked">Account locked</option>
+      </select>
+      <button id="filter-btn" class="primary-action" type="button">Filter</button>
+    </div>
+    <section class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>IP</th></tr></thead>
+        <tbody id="log-tbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+      </table>
+    </section>
+    <!-- Pagination -->
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <script type="module">
+    import { requireAdmin, logout, fetchWithAuth } from './js/auth.js';
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    const user = await requireAdmin();
+    if (!user) throw new Error('Not admin');
+    document.getElementById('user-display').textContent = `${user.username} · ${user.role}`;
+
+    const tbody = document.getElementById('log-tbody');
+    const pagination = document.getElementById('pagination');
+    let currentPage = 1;
+
+    function escapeHtml(v = '') { const d = document.createElement('div'); d.textContent = v || '—'; return d.innerHTML; }
+    function fmtIp(ip = '') {
+      let clean = String(ip).replace(/^::ffff:/, '');
+      if (clean === '::1' || clean === '127.0.0.1') return '127.0.0.1 (Localhost)';
+      return clean || '—';
+    }
+
+    async function loadLogs(page = 1) {
+      currentPage = page;
+      const username = document.getElementById('filter-username').value.trim();
+      const action = document.getElementById('filter-action').value;
+      const params = new URLSearchParams({ page, limit: 50 });
+      if (username) params.set('username', username);
+      if (action) params.set('action', action);
+
+      const res = await fetchWithAuth(`/api/logs?${params}`);
+      if (!res.ok) { tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Could not load logs.</td></tr>`; return; }
+      const data = await res.json();
+      document.getElementById('log-count').textContent = `${data.pagination.total} entries`;
+
+      if (!data.logs.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No activity found.</td></tr>`; pagination.innerHTML = ''; return; }
+
+      tbody.innerHTML = data.logs.map(l => `
+        <tr>
+          <td class="log-time">${new Date(l.created_at).toLocaleString()}</td>
+          <td>${escapeHtml(l.username)}</td>
+          <td><span class="recent-action action-${l.action}">${l.action}</span></td>
+          <td>${l.resource_name ? `<span class="resource-type">${escapeHtml(l.resource_type)}</span> ${escapeHtml(l.resource_name)}` : '—'}</td>
+          <td class="log-ip">${escapeHtml(fmtIp(l.ip_address))}</td>
+        </tr>`).join('');
+
+      // Pagination
+      const { pages } = data.pagination;
+      if (pages > 1) {
+        pagination.innerHTML = Array.from({ length: pages }, (_, i) => i + 1)
+          .map(p => `<button class="page-btn ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`)
+          .join('');
+      } else { pagination.innerHTML = ''; }
+    }
+
+    pagination.addEventListener('click', e => { if (e.target.dataset.page) loadLogs(parseInt(e.target.dataset.page)); });
+    document.getElementById('filter-btn').addEventListener('click', () => loadLogs(1));
+    document.getElementById('filter-username').addEventListener('keydown', e => { if (e.key === 'Enter') loadLogs(1); });
+
+    await loadLogs();
+  </script>
+</body>
+</html>

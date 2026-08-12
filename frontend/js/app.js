@@ -557,7 +557,7 @@ async function removeDataset(key) {
             if (!response.ok) { const result = await response.json(); throw new Error(result.error || 'Dataset removal failed.'); }
             savedDatasetLayers.delete(entry.datasetId);
         }
-        map.removeLayer(entry.layer); entry.row.remove(); delete layerRegistry[key]; updateActiveLayerCount();
+        map.removeLayer(entry.layer); if (entry.row) entry.row.remove(); delete layerRegistry[key]; updateActiveLayerCount();
         showFeedback(`Dataset "${entry.name}" removed.`);
     } catch (error) { showFeedback(error.message); }
 }

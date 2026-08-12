@@ -9,13 +9,16 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="Ethiomap.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
-    <a class="back-link" href="Ethiomap.html">Back to map</a>
+    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
+    <nav class="top-nav">
+      <a class="nav-link" href="dashboard.html">← Dashboard</a>
+      <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
+    </nav>
   </header>
   <main class="page">
     <div class="page-heading">
-      <div><div class="eyebrow">Dataset management</div><h1>Manage map layers</h1><p>Review, edit, or remove the datasets available on your map.</p></div>
-      <span id="dataset-count" class="tag">Loading...</span>
+      <div><div class="eyebrow">Dataset management</div><h1>Manage map layers</h1><p>Review, upload, edit, or remove the datasets available on your map.</p></div>
+      <div class="page-actions"><span id="dataset-count" class="tag">Loading...</span><button id="upload-dataset" class="primary-action" type="button">Upload GeoJSON</button></div>
     </div>
     <div class="dataset-search-wrap">
       <span class="dataset-search-icon">⌕</span>
@@ -24,6 +27,18 @@
     <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
     <section id="dataset-list" class="dataset-list" aria-live="polite"><div class="empty-state">Loading datasets...</div></section>
   </main>
+  <dialog id="upload-dialog">
+    <form id="upload-form">
+      <h2>Upload GeoJSON dataset</h2>
+      <label>GeoJSON file<input id="geojson-file" type="file" accept=".geojson,.json,application/geo+json,application/json" required></label>
+      <label>Dataset name<input id="upload-name" required maxlength="255"></label>
+      <label>Description<textarea id="upload-description" maxlength="2000" rows="3"></textarea></label>
+      <label>Coordinate reference system<input id="upload-crs" maxlength="100" value="EPSG:4326"></label>
+      <label>Owner<input id="upload-owner" maxlength="255"></label>
+      <label>Source<input id="upload-source" maxlength="500"></label>
+      <div class="dialog-actions"><button id="upload-cancel" type="button">Cancel</button><button class="primary" type="submit">Upload dataset</button></div>
+    </form>
+  </dialog>
   <dialog id="edit-dialog">
     <form id="edit-form">
       <h2>Edit dataset</h2>
@@ -35,6 +50,6 @@
       <div class="dialog-actions"><button id="edit-cancel" type="button">Cancel</button><button class="primary" type="submit">Save changes</button></div>
     </form>
   </dialog>
-  <script src="js/manage-dataset.js?v=dataset-management-1"></script>
+  <script type="module" src="js/manage-dataset.js?v=dataset-management-1"></script>
 </body>
 </html>

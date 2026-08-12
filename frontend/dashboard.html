@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EthioMap | Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="Ethiomap.html">
+      <span class="brand-mark">E</span>
+      <span><strong>EthioMap</strong><small>Map Information Subsystem</small></span>
+    </a>
+    <nav class="top-nav">
+      <span id="user-display" class="user-display"></span>
+      <a href="Ethiomap.html" class="nav-link">Map view</a>
+      <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
+    </nav>
+  </header>
+  <main class="dash-main">
+    <div class="dash-heading">
+      <div class="eyebrow">Admin Dashboard</div>
+      <h1 id="welcome-title">Welcome back</h1>
+      <p>Manage datasets, users, and system activity from here.</p>
+    </div>
+    <!-- Stat cards -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-label">Datasets</span>
+        <span id="stat-datasets" class="stat-value">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Active Users</span>
+        <span id="stat-users" class="stat-value">—</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Actions</span>
+        <span id="stat-actions" class="stat-value">—</span>
+      </div>
+    </div>
+    <!-- Navigation tiles -->
+    <div class="tile-grid">
+      <a class="tile" href="dataset-management.html">
+        <div class="tile-icon-badge icon-teal">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+        <h2>Dataset Management</h2>
+        <p>Upload, edit, and remove spatial GeoJSON datasets available on the map.</p>
+        <svg class="tile-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+      <a class="tile admin-only" href="user-management.html">
+        <div class="tile-icon-badge icon-blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <h2>User Management</h2>
+        <p>Create and manage staff accounts that can upload and manage datasets.</p>
+        <svg class="tile-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+      <a class="tile admin-only" href="activity-log.html">
+        <div class="tile-icon-badge icon-amber">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <h2>Activity Log</h2>
+        <p>View a full history of every upload, edit, delete, login and logout.</p>
+        <svg class="tile-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </a>
+    </div>
+    <!-- Recent activity -->
+    <section class="recent-section admin-only">
+      <div class="section-head"><h2>Recent Activity</h2><a href="activity-log.html" class="view-all">View all →</a></div>
+      <div id="recent-list" class="recent-list"><div class="empty-state">Loading…</div></div>
+    </section>
+  </main>
+  <script type="module">
+    import { requireAuth, logout } from './js/auth.js';
+    const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:4000';
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+
+    const user = await requireAuth();
+    if (!user) throw new Error('Not authenticated');
+
+    document.getElementById('welcome-title').textContent = `Welcome back, ${user.username}`;
+    document.getElementById('user-display').textContent = `${user.username} · ${user.role}`;
+
+    // Hide admin-only sections for regular users
+    if (user.role !== 'admin') {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    }
+
+    // Load stats
+    if (user.role === 'admin') {
+      try {
+        const token = localStorage.getItem('ethiomap_token');
+        const res = await fetch(`${API_BASE}/api/logs/stats`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const s = await res.json();
+          document.getElementById('stat-datasets').textContent = s.totalDatasets;
+          document.getElementById('stat-users').textContent = s.totalUsers;
+          document.getElementById('stat-actions').textContent = s.totalActions;
+          const list = document.getElementById('recent-list');
+          if (s.recentActivity.length) {
+            list.innerHTML = s.recentActivity.map(a => `
+              <div class="recent-row">
+                <span class="recent-action action-${a.action}">${a.action}</span>
+                <span class="recent-who">${a.username || '—'}</span>
+                <span class="recent-what">${a.resource_name || '—'}</span>
+                <span class="recent-when">${new Date(a.created_at).toLocaleString()}</span>
+              </div>`).join('');
+          } else {
+            list.innerHTML = '<div class="empty-state">No activity yet.</div>';
+          }
+        }
+      } catch {}
+    } else {
+      // Non-admin: just show dataset count
+      try {
+        const res = await fetch(`${API_BASE}/api/datasets`);
+        if (res.ok) { const d = await res.json(); document.getElementById('stat-datasets').textContent = d.length; }
+      } catch {}
+      document.getElementById('stat-users').closest('.stat-card').style.display = 'none';
+      document.getElementById('stat-actions').closest('.stat-card').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

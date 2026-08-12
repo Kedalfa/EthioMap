@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EthioMap | User Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
+    <nav class="top-nav">
+      <span id="user-display" class="user-display"></span>
+      <a href="dashboard.html" class="nav-link">← Dashboard</a>
+      <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
+    </nav>
+  </header>
+  <main class="dash-main">
+    <div class="page-heading">
+      <div><div class="eyebrow">Admin</div><h1>User Management</h1><p>Create and manage staff accounts.</p></div>
+      <div class="page-actions">
+        <span id="user-count" class="tag">Loading…</span>
+        <button id="create-user-btn" class="primary-action" type="button">Create user</button>
+      </div>
+    </div>
+    <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+    <section id="user-table-wrap" class="table-wrap">
+      <table class="data-table" id="user-table">
+        <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody id="user-tbody"><tr><td colspan="6" class="empty-state">Loading users…</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Create user dialog -->
+  <dialog id="create-dialog">
+    <form id="create-form">
+      <h2>Create user</h2>
+      <label>Username<input id="new-username" required maxlength="100" autocomplete="off"></label>
+      <label>Email<input id="new-email" type="email" required maxlength="255" autocomplete="off"></label>
+      <label>Password<input id="new-password" type="password" required maxlength="255" autocomplete="new-password"></label>
+      <label>Role
+        <select id="new-role">
+          <option value="user">User — can manage datasets</option>
+          <option value="admin">Admin — full access</option>
+        </select>
+      </label>
+      <div id="create-error" class="login-error" hidden></div>
+      <div class="dialog-actions">
+        <button id="create-cancel" type="button">Cancel</button>
+        <button class="primary" type="submit">Create user</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module">
+    import { requireAdmin, logout, fetchWithAuth } from './js/auth.js';
+
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    const user = await requireAdmin();
+    if (!user) throw new Error('Not admin');
+    document.getElementById('user-display').textContent = `${user.username} · ${user.role}`;
+
+    const tbody = document.getElementById('user-tbody');
+    const feedback = document.getElementById('feedback');
+    const createDialog = document.getElementById('create-dialog');
+
+    function showFeedback(msg) { feedback.textContent = msg; feedback.hidden = false; setTimeout(() => feedback.hidden = true, 3500); }
+    function escapeHtml(v = '') { const d = document.createElement('div'); d.textContent = v; return d.innerHTML; }
+    function fmtDate(d) { return new Date(d).toLocaleDateString(); }
+
+    async function loadUsers() {
+      const res = await fetchWithAuth('/api/users');
+      if (!res.ok) { tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Could not load users.</td></tr>`; return; }
+      const users = await res.json();
+      document.getElementById('user-count').textContent = `${users.length} user${users.length === 1 ? '' : 's'}`;
+      if (!users.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No users yet.</td></tr>`; return; }
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td><strong>${escapeHtml(u.username)}</strong></td>
+          <td>${escapeHtml(u.email)}</td>
+          <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+          <td><span class="status-badge ${u.is_active ? 'active' : 'inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+          <td>${fmtDate(u.created_at)}</td>
+          <td class="row-actions">
+            ${u.id !== '${user.id}' ? `
+              <button class="btn-sm" data-toggle="${u.id}" data-active="${u.is_active}">${u.is_active ? 'Deactivate' : 'Activate'}</button>
+              <button class="btn-sm btn-role" data-role-id="${u.id}" data-role="${u.role}">${u.role === 'admin' ? 'Make user' : 'Make admin'}</button>
+            ` : '<span class="you-label">You</span>'}
+          </td>
+        </tr>`).join('');
+    }
+
+    tbody.addEventListener('click', async (e) => {
+      const toggleId = e.target.dataset.toggle;
+      const roleId = e.target.dataset.roleId;
+      if (toggleId) {
+        const isActive = e.target.dataset.active === 'true';
+        const res = await fetchWithAuth(`/api/users/${toggleId}`, { method: 'PUT', body: JSON.stringify({ is_active: !isActive }) });
+        if (res.ok) { showFeedback(`User ${isActive ? 'deactivated' : 'activated'}.`); await loadUsers(); }
+        else showFeedback('Update failed.');
+      }
+      if (roleId) {
+        const currentRole = e.target.dataset.role;
+        const newRole = currentRole === 'admin' ? 'user' : 'admin';
+        const res = await fetchWithAuth(`/api/users/${roleId}`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
+        if (res.ok) { showFeedback(`Role changed to ${newRole}.`); await loadUsers(); }
+        else showFeedback('Role update failed.');
+      }
+    });
+
+    document.getElementById('create-user-btn').addEventListener('click', () => {
+      document.getElementById('create-form').reset();
+      document.getElementById('create-error').hidden = true;
+      createDialog.showModal();
+    });
+    document.getElementById('create-cancel').addEventListener('click', () => createDialog.close());
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById('create-error');
+      errBox.hidden = true;
+      const res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify({
+        username: document.getElementById('new-username').value.trim(),
+        email: document.getElementById('new-email').value.trim(),
+        password: document.getElementById('new-password').value,
+        role: document.getElementById('new-role').value,
+      }) });
+      const data = await res.json();
+      if (!res.ok) { errBox.textContent = data.error || 'Failed to create user.'; errBox.hidden = false; return; }
+      createDialog.close();
+      showFeedback(`User "${data.username}" created.`);
+      await loadUsers();
+    });
+
+    await loadUsers();
+  </script>
+</body>
+</html>

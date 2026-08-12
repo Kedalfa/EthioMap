@@ -65,3 +65,42 @@ CREATE INDEX IF NOT EXISTS datasets_created_at_idx
 
 -- Migration: Add metadata column to datasets if it doesn't exist
 ALTER TABLE datasets ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+-- ============================================================
+-- AUTH: Users and Activity Logging
+-- ============================================================
+
+-- Users: staff accounts (role = 'admin' | 'user')
+CREATE TABLE IF NOT EXISTS users (
+  id               UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+  username         VARCHAR(100) UNIQUE NOT NULL,
+  email            VARCHAR(255) UNIQUE NOT NULL,
+  password_hash    TEXT NOT NULL,
+  role             VARCHAR(20) NOT NULL DEFAULT 'user',
+  is_active        BOOLEAN NOT NULL DEFAULT TRUE,
+  failed_attempts  INTEGER NOT NULL DEFAULT 0,
+  locked_until     TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_by       UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS users_username_idx ON users (username);
+CREATE INDEX IF NOT EXISTS users_role_idx ON users (role);
+
+-- Activity logs: one row per user action
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id            UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID  REFERENCES users(id) ON DELETE SET NULL,
+  username      TEXT,                  -- denormalized: preserved if user deleted
+  action        VARCHAR(100) NOT NULL, -- login | logout | upload | edit | delete | create_user | deactivate_user
+  resource_type VARCHAR(50),           -- dataset | user | session
+  resource_id   TEXT,
+  resource_name TEXT,
+  details       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ip_address    INET,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS activity_logs_created_at_idx ON activity_logs (created_at DESC);
+CREATE INDEX IF NOT EXISTS activity_logs_user_id_idx    ON activity_logs (user_id);
+CREATE INDEX IF NOT EXISTS activity_logs_action_idx     ON activity_logs (action);

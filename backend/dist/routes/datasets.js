@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../db.js';
+import { requireAuth, logActivity, getClientIp } from '../middleware/auth.js';
 const router = Router();
 // Normalize uploaded GeoJSON into a FeatureCollection.
 function normalizeGeoJSON(input) {
@@ -149,7 +150,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 // 3. POST /api/datasets - Validate and save a GeoJSON dataset and its features
-router.post('/', async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
     let client;
     try {
         const geojson = normalizeGeoJSON(req.body.geojson);
@@ -183,7 +184,15 @@ router.post('/', async (req, res) => {
             ]);
         }
         await client.query('COMMIT');
-        res.status(201).json(datasetSummary(dataset));
+        const saved = datasetSummary(dataset);
+        await logActivity({
+            userId: req.user?.id, username: req.user?.username,
+            action: 'upload', resourceType: 'dataset',
+            resourceId: saved.id, resourceName: saved.name,
+            details: { featureCount: saved.featureCount, originalFilename: saved.originalFilename },
+            ipAddress: getClientIp(req),
+        });
+        res.status(201).json(saved);
     }
     catch (error) {
         if (client) {
@@ -204,7 +213,7 @@ router.post('/', async (req, res) => {
     }
 });
 // 4. PUT /api/datasets/:id - Update name and metadata of a dataset
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
     try {
         const { name, metadata } = req.body;
         const result = await pool.query(`
@@ -217,7 +226,14 @@ router.put('/:id', async (req, res) => {
         if (!result.rowCount) {
             return res.status(404).json({ error: 'Dataset not found.' });
         }
-        res.json(datasetSummary(result.rows[0]));
+        const updated = datasetSummary(result.rows[0]);
+        await logActivity({
+            userId: req.user?.id, username: req.user?.username,
+            action: 'edit', resourceType: 'dataset',
+            resourceId: updated.id, resourceName: updated.name,
+            ipAddress: getClientIp(req),
+        });
+        res.json(updated);
     }
     catch (error) {
         console.error(`Error updating dataset ${req.params.id}:`, error);
@@ -225,12 +241,18 @@ router.put('/:id', async (req, res) => {
     }
 });
 // 5. DELETE /api/datasets/:id - Delete a dataset and its related features
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
     try {
-        const result = await pool.query('DELETE FROM datasets WHERE id = $1 RETURNING id', [req.params.id]);
+        const result = await pool.query('DELETE FROM datasets WHERE id = $1 RETURNING id, name', [req.params.id]);
         if (!result.rowCount) {
             return res.status(404).json({ error: 'Dataset not found.' });
         }
+        await logActivity({
+            userId: req.user?.id, username: req.user?.username,
+            action: 'delete', resourceType: 'dataset',
+            resourceId: result.rows[0].id, resourceName: result.rows[0].name,
+            ipAddress: getClientIp(req),
+        });
         res.status(204).end();
     }
     catch (error) {
