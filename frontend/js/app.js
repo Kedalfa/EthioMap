@@ -36,7 +36,7 @@ homeMarker.on('click', (event) => {
 
 // Keep basemaps in their own layer so switching imagery never removes data,
 // measurement, or search-result overlays already drawn on the map.
-const basemapSelect = document.getElementById('basemap-select');
+const basemapToggle = document.getElementById('basemap-toggle');
 const basemaps = {
     street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -46,13 +46,20 @@ const basemaps = {
     })
 };
 let activeBasemap = basemaps.street.addTo(map);
+let activeBasemapName = 'street';
 
-basemapSelect.addEventListener('change', () => {
-    const selectedBasemap = basemaps[basemapSelect.value] || basemaps.street;
+function setBasemap(name) {
+    const selectedBasemap = basemaps[name] || basemaps.street;
     if (selectedBasemap === activeBasemap) return;
     map.removeLayer(activeBasemap);
     activeBasemap = selectedBasemap.addTo(map);
-});
+    activeBasemapName = name;
+    const satelliteActive = name === 'satellite';
+    basemapToggle.setAttribute('aria-pressed', String(satelliteActive));
+    basemapToggle.setAttribute('aria-label', satelliteActive ? 'Switch to street map' : 'Switch to satellite map');
+    basemapToggle.title = satelliteActive ? 'Switch to street map' : 'Switch to satellite map';
+}
+basemapToggle.addEventListener('click', () => setBasemap(activeBasemapName === 'street' ? 'satellite' : 'street'));
 
 const layerRegistry = {};
 // Keeps references to saved database layers so search results can zoom to them.
@@ -430,9 +437,6 @@ map.on('click', (event) => {
     else reverseGeocode(event.latlng);
 });
 
-// Public GeoJSON upload: no authentication redirect is required.
-const uploadBtn = document.getElementById('uploadDatasetBtn');
-const geojsonFileInput = document.getElementById('geojsonFileInput');
 const uploadedLayers = document.getElementById('uploaded-layers');
 const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:5000';
 
@@ -446,7 +450,7 @@ function addUploadedLayer(file, geojson, datasetId = null, fitToLayer = true) {
     if (uploadedLayers) {
         const row = document.createElement('div');
         row.className = 'layer-row uploaded-layer-row';
-        row.innerHTML = `<span class="layer-color" style="background:${color}"></span><div class="layer-info"><strong class="dataset-title">${escapeHtml(file.name)}</strong><span class="dataset-subtitle">Uploaded GeoJSON</span></div><div class="dataset-actions"><button type="button" class="dataset-edit">Edit</button><button type="button" class="dataset-remove">Remove</button><div class="form-check form-switch m-0"><input class="form-check-input layer-toggle" type="checkbox" checked></div></div>`;
+        row.innerHTML = `<span class="layer-color" style="background:${color}"></span><div class="layer-info"><strong class="dataset-title">${escapeHtml(file.name)}</strong><span class="dataset-subtitle">Uploaded GeoJSON</span></div><div class="form-check form-switch m-0"><input class="form-check-input layer-toggle" type="checkbox" checked></div>`;
         layerRegistry[key].row = row;
         const toggle = row.querySelector('.layer-toggle');
         toggle.addEventListener('change', () => {
@@ -455,8 +459,6 @@ function addUploadedLayer(file, geojson, datasetId = null, fitToLayer = true) {
             else map.removeLayer(layer);
             updateActiveLayerCount();
         });
-        row.querySelector('.dataset-edit').addEventListener('click', () => openMetadataEditor(key));
-        row.querySelector('.dataset-remove').addEventListener('click', () => removeDataset(key));
         uploadedLayers.appendChild(row);
     }
     updateActiveLayerCount();
@@ -470,93 +472,6 @@ function addUploadedLayer(file, geojson, datasetId = null, fitToLayer = true) {
     return key;
 }
 
-async function saveDatasetToDatabase(file, geojson) {
-    let response;
-    try {
-        response = await fetch(`${API_BASE}/api/datasets`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: file.originalName || file.name, name: file.name, geojson, metadata: file.metadata })
-        });
-    } catch {
-        throw new Error(`Cannot reach the API at ${API_BASE}. Keep the backend terminal running and try again.`);
-    }
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'The database rejected the dataset.');
-    return result;
-}
-
-const metadataDialog = document.getElementById('metadata-dialog');
-const metadataForm = document.getElementById('metadata-form');
-let metadataKey;
-let pendingUpload;
-function openMetadataEditor(key) {
-    metadataKey = key;
-    pendingUpload = null;
-    const entry = layerRegistry[key];
-    const metadata = entry.metadata || {};
-    document.getElementById('metadata-name').value = entry.name || '';
-    document.getElementById('metadata-description').value = metadata.description || '';
-    document.getElementById('metadata-crs').value = metadata.coordinateReferenceSystem || 'EPSG:4326';
-    document.getElementById('metadata-owner').value = metadata.owner || '';
-    document.getElementById('metadata-source').value = metadata.source || '';
-    metadataDialog.showModal();
-}
-document.getElementById('metadata-cancel').addEventListener('click', () => {
-    metadataKey = null;
-    pendingUpload = null;
-    metadataDialog.close();
-});
-metadataForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const metadata = { description: document.getElementById('metadata-description').value.trim(), coordinateReferenceSystem: document.getElementById('metadata-crs').value.trim() || 'EPSG:4326', owner: document.getElementById('metadata-owner').value.trim(), source: document.getElementById('metadata-source').value.trim() };
-    const name = document.getElementById('metadata-name').value.trim();
-    try {
-        if (pendingUpload) {
-            const { file, geojson } = pendingUpload;
-            const uploadFile = { name: name || file.name, originalName: file.name, metadata };
-            const layerKey = addUploadedLayer(uploadFile, geojson);
-            saveDatasetToDatabase(uploadFile, geojson)
-                .then((dataset) => {
-                    layerRegistry[layerKey].datasetId = dataset.id;
-                    layerRegistry[layerKey].metadata = dataset.metadata;
-                    savedDatasetLayers.set(dataset.id, layerRegistry[layerKey]);
-                    databaseLocations.unshift({ name: datasetDisplayName(dataset.name), type: 'Dataset', datasetName: datasetDisplayName(dataset.name), datasetId: dataset.id });
-                    showFeedback(`${file.name} uploaded and saved to PostgreSQL.`);
-                })
-                .catch((error) => showFeedback(`${file.name} drawn, but not saved: ${error.message}`));
-            pendingUpload = null;
-            metadataDialog.close();
-            return;
-        }
-        const entry = layerRegistry[metadataKey];
-        if (entry.datasetId) {
-            const response = await fetch(`${API_BASE}/api/datasets/${entry.datasetId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, metadata }) });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Metadata update failed.');
-            entry.metadata = result.metadata;
-        }
-        entry.name = name || entry.name;
-        entry.row.querySelector('.dataset-title').textContent = entry.name;
-        metadataKey = null;
-        metadataDialog.close();
-        showFeedback(`Metadata updated for "${entry.name}".`);
-    } catch (error) { showFeedback(error.message); }
-});
-
-async function removeDataset(key) {
-    const entry = layerRegistry[key];
-    if (!entry || !window.confirm(`Remove dataset "${entry.name}"?`)) return;
-    try {
-        if (entry.datasetId) {
-            const response = await fetch(`${API_BASE}/api/datasets/${entry.datasetId}`, { method: 'DELETE' });
-            if (!response.ok) { const result = await response.json(); throw new Error(result.error || 'Dataset removal failed.'); }
-            savedDatasetLayers.delete(entry.datasetId);
-        }
-        map.removeLayer(entry.layer); entry.row.remove(); delete layerRegistry[key]; updateActiveLayerCount();
-        showFeedback(`Dataset "${entry.name}" removed.`);
-    } catch (error) { showFeedback(error.message); }
-}
 
 async function loadSavedDatasets() {
     try {
@@ -580,35 +495,5 @@ async function loadSavedDatasets() {
         // The map remains usable when the API is not running.
     }
 }
-
-uploadBtn.addEventListener('click', () => geojsonFileInput.click());
-geojsonFileInput.addEventListener('change', () => {
-    const file = geojsonFileInput.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-        try {
-            const parsed = JSON.parse(reader.result);
-            if (!['FeatureCollection', 'Feature'].includes(parsed.type)) throw new Error('The file must be a GeoJSON Feature or FeatureCollection.');
-            pendingUpload = { file, geojson: parsed };
-            metadataKey = null;
-            document.getElementById('metadata-name').value = file.name;
-            document.getElementById('metadata-description').value = '';
-            document.getElementById('metadata-crs').value = 'EPSG:4326';
-            document.getElementById('metadata-owner').value = '';
-            document.getElementById('metadata-source').value = '';
-            metadataDialog.showModal();
-        } catch (error) {
-            showFeedback(`Upload failed: ${error.message}`);
-        } finally {
-            geojsonFileInput.value = '';
-        }
-    });
-    reader.addEventListener('error', () => {
-        showFeedback('Upload failed: the file could not be read.');
-        geojsonFileInput.value = '';
-    });
-    reader.readAsText(file);
-});
 
 loadSavedDatasets();

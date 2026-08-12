@@ -19,15 +19,14 @@
     <header class="topbar">
       <div class="brand"><div class="brand-mark">E</div><div><strong>EthioMap</strong><small>Map Information Subsystem</small></div></div>
       <div class="search-wrap">
-        <span class="search-icon">⌕</span>
+        <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg></span>
         <input id="map-search" type="search" placeholder="Search places, regions or coordinates..." aria-label="Search map" autocomplete="off">
         <div id="search-results" class="search-results" hidden></div>
-        <button class="search-btn" aria-label="Search">⌕</button>
+        <button class="search-btn" aria-label="Search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4"></path></svg></button>
       </div>
       <div class="top-actions">
-        <button class="upload-dataset" id="uploadDatasetBtn" type="button">Upload GeoJSON</button>
-        <input id="geojsonFileInput" type="file" accept=".geojson,.json,application/geo+json,application/json" hidden>
-        <button class="icon-button" title="Help" disabled>Help</button>
+        <a class="upload-dataset" href="login.html">Login</a>
+        <a class="icon-button about-link" href="about.html">About Us</a>
       </div> 
     </header>
 
@@ -41,11 +40,8 @@
         <div class="panel-scroll">
           <section id="panel-home" class="panel-page">
             <div class="panel-intro">
-              <div class="eyebrow">Map workspace</div>
-              <h2>Explore Ethiopia</h2>
               <p>Use the map tools to explore locations and measure distances or areas.</p>
             </div>
-            <a id="manage-dataset" class="manage-dataset-button" href="dataset-management.html">Manage Dataset</a>
             <div class="measurement-panel">
             <div class="section-label">Measure on map</div>
             <div class="measurement-buttons">
@@ -68,16 +64,19 @@
         </div>
         <div id="location-sidebar-content" class="location-sidebar-content"></div>
       </aside>
+      <div class="zoom-tools" aria-label="Zoom controls">
+        <button id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+        <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+      </div>
       <div class="map-tools" aria-label="Map controls">
-        <label class="basemap-picker" for="basemap-select">Basemap
+        <button id="basemap-toggle" type="button" title="Switch to satellite map" aria-label="Switch to satellite map" aria-pressed="false"><svg class="layers-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="12" height="12" rx="1"></rect><rect x="8" y="8" width="12" height="12" rx="1"></rect></svg></button>
+        <label class="basemap-picker" for="basemap-select" hidden>
           <select id="basemap-select" aria-label="Choose basemap">
             <option value="street">Street map</option>
             <option value="satellite">Satellite</option>
           </select>
         </label>
-        <button id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
-        <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
-        <button id="reset-view" type="button" title="Locate Ethiopia" aria-label="Reset view">⌖</button>
+        <button id="reset-view" type="button" title="Locate Ethiopia" aria-label="Reset view"><svg class="locate-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg></button>
         <button id="fullscreen-map" type="button" title="Enter fullscreen map" aria-label="Enter fullscreen map" aria-pressed="false">
           <svg class="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />
@@ -87,17 +86,6 @@
       <div id="map-feedback" class="map-feedback" role="status" aria-live="polite" hidden></div>
     </main>
   </div>
-  <dialog id="metadata-dialog" class="metadata-dialog">
-    <form method="dialog" id="metadata-form">
-      <h2>Dataset metadata</h2><p class="dialog-help">Update information stored with this spatial dataset.</p>
-      <label>Dataset name<input id="metadata-name" required maxlength="255"></label>
-      <label>Description<textarea id="metadata-description" maxlength="2000" rows="3"></textarea></label>
-      <label>Coordinate reference system<input id="metadata-crs" placeholder="EPSG:4326" maxlength="100"></label>
-      <label>Owner<input id="metadata-owner" maxlength="255"></label>
-      <label>Source<input id="metadata-source" maxlength="500"></label>
-      <div class="dialog-actions"><button value="cancel" type="button" id="metadata-cancel">Cancel</button><button value="default" type="submit">Save metadata</button></div>
-    </form>
-  </dialog>
   <!-- Load Leaflet first because app.js uses the global L object. -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <!-- Load the project map behavior after the page elements exist. -->
