@@ -3,15 +3,8 @@ import { pool } from '../db.js';
 
 const router = Router();
 
-// Helper to query layer from database and return as a GeoJSON FeatureCollection
-async function getLayerGeoJSON(tableName: string) {
-  // Strict whitelist check to prevent SQL injection when interpolating the table name
-  const allowedTables = ['regions', 'cities', 'corridors'];
-  if (!allowedTables.includes(tableName)) {
-    throw new Error(`Invalid table name requested: ${tableName}`);
-  }
-
-  // Construct query to convert geometry to GeoJSON and aggregate rows into a single FeatureCollection
+// Helper to query dataset features from datasets & dataset_features tables
+async function getDatasetLayerGeoJSON(datasetNameKeyword: string) {
   const query = `
     SELECT json_build_object(
       'type', 'FeatureCollection',
@@ -19,25 +12,28 @@ async function getLayerGeoJSON(tableName: string) {
         json_agg(
           json_build_object(
             'type', 'Feature',
-            'id', id,
-            'properties', properties || jsonb_build_object('name', name),
-            'geometry', ST_AsGeoJSON(geom)::json
+            'id', f.id,
+            'properties', f.properties,
+            'geometry', ST_AsGeoJSON(ST_Transform(f.geom, 4326))::json
           )
+          ORDER BY f.feature_index ASC
         ),
         '[]'::json
       )
     ) AS geojson
-    FROM ${tableName};
+    FROM dataset_features f
+    JOIN datasets d ON f.dataset_id = d.id
+    WHERE d.name ILIKE $1;
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [`%${datasetNameKeyword}%`]);
   return result.rows[0]?.geojson || { type: 'FeatureCollection', features: [] };
 }
 
 // 1. GET /api/layers/regions
 router.get('/regions', async (req, res) => {
   try {
-    const geojson = await getLayerGeoJSON('regions');
+    const geojson = await getDatasetLayerGeoJSON('Regions');
     res.json(geojson);
   } catch (error: any) {
     console.error('Error fetching regions layer:', error);
@@ -48,7 +44,7 @@ router.get('/regions', async (req, res) => {
 // 2. GET /api/layers/cities
 router.get('/cities', async (req, res) => {
   try {
-    const geojson = await getLayerGeoJSON('cities');
+    const geojson = await getDatasetLayerGeoJSON('Cities');
     res.json(geojson);
   } catch (error: any) {
     console.error('Error fetching cities layer:', error);
@@ -59,43 +55,10 @@ router.get('/cities', async (req, res) => {
 // 3. GET /api/layers/corridors
 router.get('/corridors', async (req, res) => {
   try {
-    const geojson = await getLayerGeoJSON('corridors');
+    const geojson = await getDatasetLayerGeoJSON('Corridors');
     res.json(geojson);
   } catch (error: any) {
     console.error('Error fetching corridors layer:', error);
-    res.status(500).json({ error: 'Internal database error', details: error.message });
-  }
-});
-
-// 4. GET /api/layers/lakes
-router.get('/lakes', async (req, res) => {
-  try {
-    const query = `
-      SELECT json_build_object(
-        'type', 'FeatureCollection',
-        'features', COALESCE(
-          json_agg(
-            json_build_object(
-              'type', 'Feature',
-              'id', 'lake-' || ogc_fid,
-              'properties', jsonb_build_object(
-                'name', 'Lake ' || ogc_fid,
-                'area', area,
-                'perimeter', perimeter
-              ),
-              'geometry', ST_AsGeoJSON(ST_Transform(ST_SetSRID(wkb_geometry, 32637), 4326))::json
-            )
-          ),
-          '[]'::json
-        )
-      ) AS geojson
-      FROM eth_lakes;
-    `;
-    const result = await pool.query(query);
-    const geojson = result.rows[0]?.geojson || { type: 'FeatureCollection', features: [] };
-    res.json(geojson);
-  } catch (error: any) {
-    console.error('Error fetching lakes layer:', error);
     res.status(500).json({ error: 'Internal database error', details: error.message });
   }
 });

@@ -3,56 +3,310 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EthioMap | Profile</title>
+  <title>EthioMap | Account Profile</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
+    <a class="brand" href="dashboard.html">
+      <span class="brand-mark">E</span>
+      <span><strong>EthioMap</strong><small>Map Information Subsystem</small></span>
+    </a>
     <nav class="top-nav">
       <a href="Ethiomap.html" class="nav-link">Map</a>
       <a href="about.html" class="nav-link">About Us</a>
       <a href="dashboard.html" class="nav-link">← Dashboard</a>
       <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
-      <a href="profile.html" class="nav-link profile-nav" aria-label="Open profile" title="Profile"><svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path></svg></a>
+      <a href="profile.html" class="nav-link profile-nav" aria-label="Open profile" title="Profile">
+        <svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="8" r="3.5"></circle>
+          <path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path>
+        </svg>
+      </a>
     </nav>
   </header>
 
   <main class="page">
     <div class="page-heading">
       <div>
-        <div class="eyebrow">Account</div>
+        <div class="eyebrow">Account Management</div>
         <h1>My Profile</h1>
-        <p>View your EthioMap account information and access level.</p>
+        <p>Manage your profile information and account credentials.</p>
       </div>
     </div>
 
-    <section class="profile-card" aria-labelledby="profile-heading">
-      <div class="profile-avatar" id="profile-avatar" aria-hidden="true">E</div>
-      <div class="profile-details">
-        <h2 id="profile-heading">Account details</h2>
-        <div class="profile-field"><span>Username</span><strong id="profile-username">Loading...</strong></div>
-        <div class="profile-field"><span>Email</span><strong id="profile-email">Loading...</strong></div>
-        <div class="profile-field"><span>Role</span><strong id="profile-role" class="role-badge">Loading...</strong></div>
+    <!-- Main Profile Stack Container -->
+    <div class="profile-container">
+      <!-- Profile Card -->
+      <section class="profile-card" aria-labelledby="profile-heading">
+        <div class="profile-card-header">
+          <div class="profile-avatar-large" id="profile-avatar">E</div>
+          <div class="profile-user-info">
+            <h2 id="profile-display-name">Loading...</h2>
+            <p id="profile-display-email">Loading email...</p>
+            <div style="margin-top: 4px;">
+              <span id="profile-role-badge" class="role-badge">Loading Role...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Standalone Action Buttons directly on screen below card -->
+      <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <button id="open-edit-profile-btn" class="secondary-action-btn" type="button">Edit Profile</button>
+        <button id="open-pwd-modal-btn" class="secondary-action-btn" type="button">Change Password</button>
       </div>
-    </section>
+    </div>
   </main>
 
+  <!-- 1. Centered Hover Card Modal for Edit Profile -->
+  <dialog id="edit-profile-modal" class="hover-card-modal">
+    <form id="edit-profile-form">
+      <div class="modal-header">
+        <h3>Edit Profile</h3>
+        <button id="close-edit-profile-btn" class="modal-close-btn" type="button" aria-label="Close dialog">✕</button>
+      </div>
+      
+      <div style="padding: 16px 20px;">
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Update your account username and email address.</p>
+
+        <div class="profile-form-group">
+          <label>
+            Username
+            <input id="input-username" type="text" required maxlength="100" autocomplete="off">
+          </label>
+          <label>
+            Email Address
+            <input id="input-email" type="email" required maxlength="255" autocomplete="off">
+          </label>
+        </div>
+
+        <div id="edit-profile-msg" class="msg-box" hidden></div>
+
+        <div class="dialog-actions" style="margin-top: 16px;">
+          <button id="cancel-edit-profile-btn" type="button">Cancel</button>
+          <button class="primary" type="submit">Save Profile Changes</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 2. Centered Hover Card Modal for Change Password -->
+  <dialog id="change-pwd-modal" class="hover-card-modal">
+    <form id="change-pwd-form">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button id="close-pwd-modal-btn" class="modal-close-btn" type="button" aria-label="Close dialog">✕</button>
+      </div>
+      
+      <div style="padding: 16px 20px;">
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Enter your current password and set a new secure password.</p>
+
+        <div class="profile-form-group">
+          <label>
+            Current Password
+            <input id="input-current-pwd" type="password" required maxlength="255" autocomplete="current-password">
+          </label>
+          <label>
+            New Password
+            <input id="input-new-pwd" type="password" required maxlength="255" autocomplete="new-password">
+          </label>
+          <label>
+            Confirm New Password
+            <input id="input-confirm-pwd" type="password" required maxlength="255" autocomplete="new-password">
+          </label>
+        </div>
+
+        <div id="pwd-modal-msg" class="msg-box" hidden></div>
+
+        <div class="dialog-actions" style="margin-top: 16px;">
+          <button id="cancel-pwd-modal-btn" type="button">Cancel</button>
+          <button class="primary" type="submit">Update Password</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
   <script type="module">
-    import { requireAuth, logout } from './js/auth.js';
+    import { requireAuth, logout, fetchWithAuth, setToken } from './js/auth.js';
 
     document.getElementById('logout-btn').addEventListener('click', logout);
+    
+    // Authenticate and load current user profile
     const user = await requireAuth();
     if (!user) throw new Error('Not authenticated');
 
-    document.getElementById('profile-username').textContent = user.username;
-    document.getElementById('profile-email').textContent = user.email;
-    const role = document.getElementById('profile-role');
-    role.textContent = user.role === 'admin' ? 'Administrator' : 'User';
-    role.classList.add(`role-${user.role}`);
-    document.getElementById('profile-avatar').textContent = user.username.charAt(0).toUpperCase();
+    // Populate User Info
+    function renderUserInfo(u) {
+      const username = u.username || '';
+      const email = u.email || '';
+      const roleStr = u.role === 'admin' ? 'Administrator' : 'Standard User';
+
+      document.getElementById('profile-display-name').textContent = username;
+      document.getElementById('profile-display-email').textContent = email;
+      document.getElementById('profile-avatar').textContent = username.charAt(0).toUpperCase();
+
+      const roleBadge = document.getElementById('profile-role-badge');
+      roleBadge.textContent = roleStr;
+      roleBadge.className = `role-badge role-${u.role}`;
+
+      document.getElementById('input-username').value = username;
+      document.getElementById('input-email').value = email;
+    }
+
+    renderUserInfo(user);
+
+    // Helper to render inline message inside modal (disappears after 4 seconds)
+    function showModalMessage(el, text, type = 'error') {
+      el.textContent = text;
+      el.className = `msg-box ${type}`;
+      el.hidden = false;
+      if (el.timer) clearTimeout(el.timer);
+      el.timer = setTimeout(() => {
+        el.hidden = true;
+      }, 4000);
+    }
+
+    // --- Modal 1: Edit Profile ---
+    const editProfileModal = document.getElementById('edit-profile-modal');
+    const openEditBtn = document.getElementById('open-edit-profile-btn');
+    const closeEditBtn = document.getElementById('close-edit-profile-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-profile-btn');
+    const editProfileForm = document.getElementById('edit-profile-form');
+    const editProfileMsg = document.getElementById('edit-profile-msg');
+
+    openEditBtn.addEventListener('click', () => {
+      editProfileMsg.hidden = true;
+      editProfileModal.showModal();
+    });
+
+    closeEditBtn.addEventListener('click', () => editProfileModal.close());
+    cancelEditBtn.addEventListener('click', () => editProfileModal.close());
+
+    editProfileForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      editProfileMsg.hidden = true;
+
+      const username = document.getElementById('input-username').value.trim();
+      const email = document.getElementById('input-email').value.trim();
+
+      try {
+        const res = await fetchWithAuth('/api/auth/profile', {
+          method: 'POST',
+          body: JSON.stringify({ username, email })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showModalMessage(editProfileMsg, data.error || 'Failed to update profile.', 'error');
+          return;
+        }
+
+        if (data.token) setToken(data.token);
+        renderUserInfo(data.user);
+        
+        // Display success message inside modal before closing
+        showModalMessage(editProfileMsg, 'Profile details updated successfully!', 'success');
+
+        setTimeout(() => {
+          editProfileModal.close();
+          editProfileMsg.hidden = true;
+        }, 1200);
+      } catch (err) {
+        showModalMessage(editProfileMsg, err.message || 'Error updating profile.', 'error');
+      }
+    });
+
+    // --- Modal 2: Change Password ---
+    const changePwdModal = document.getElementById('change-pwd-modal');
+    const openPwdBtn = document.getElementById('open-pwd-modal-btn');
+    const closePwdBtn = document.getElementById('close-pwd-modal-btn');
+    const cancelPwdBtn = document.getElementById('cancel-pwd-modal-btn');
+    const changePwdForm = document.getElementById('change-pwd-form');
+    const pwdModalMsg = document.getElementById('pwd-modal-msg');
+
+    function resetPasswordModal() {
+      changePwdForm.reset();
+      pwdModalMsg.hidden = true;
+    }
+
+    openPwdBtn.addEventListener('click', () => {
+      resetPasswordModal();
+      changePwdModal.showModal();
+    });
+
+    closePwdBtn.addEventListener('click', () => changePwdModal.close());
+    cancelPwdBtn.addEventListener('click', () => changePwdModal.close());
+
+    // Evaluates missing password requirements dynamically
+    function evaluatePasswordPolicy(pwd) {
+      if (!pwd || pwd.length < 8) {
+        return 'Password must be at least 8 characters long.';
+      }
+      if (!/[A-Z]/.test(pwd)) {
+        return 'Please include at least one uppercase letter (A-Z).';
+      }
+      if (!/[a-z]/.test(pwd)) {
+        return 'Please include at least one lowercase letter (a-z).';
+      }
+      if (!/\d/.test(pwd)) {
+        return 'Please include at least one number (0-9).';
+      }
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) {
+        return 'Please include at least one special character (e.g. !@#$%^&*).';
+      }
+      return null;
+    }
+
+    changePwdForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      pwdModalMsg.hidden = true;
+
+      const currentPassword = document.getElementById('input-current-pwd').value;
+      const newPassword = document.getElementById('input-new-pwd').value;
+      const confirmPassword = document.getElementById('input-confirm-pwd').value;
+
+      if (!currentPassword) {
+        showModalMessage(pwdModalMsg, 'Please enter your current password.', 'error');
+        return;
+      }
+
+      // Dynamic check for missing requirements
+      const missingRequirementMsg = evaluatePasswordPolicy(newPassword);
+      if (missingRequirementMsg) {
+        showModalMessage(pwdModalMsg, missingRequirementMsg, 'error');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showModalMessage(pwdModalMsg, 'New password and confirmation do not match.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetchWithAuth('/api/auth/change-password', {
+          method: 'PUT',
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          // Shows "Current password is incorrect." or server validation error
+          showModalMessage(pwdModalMsg, data.error || 'Failed to change password.', 'error');
+          return;
+        }
+
+        // Display success message inside modal before closing
+        showModalMessage(pwdModalMsg, 'Password changed successfully!', 'success');
+
+        setTimeout(() => {
+          changePwdModal.close();
+          resetPasswordModal();
+        }, 1200);
+      } catch (err) {
+        showModalMessage(pwdModalMsg, err.message || 'Error changing password.', 'error');
+      }
+    });
   </script>
 </body>
 </html>

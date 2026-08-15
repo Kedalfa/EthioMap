@@ -46,6 +46,68 @@ app.get('/api/datasets', async (_request, response) => {
   } catch { response.status(500).json({ error: 'Could not load datasets.' }); }
 });
 
+// Search across datasets and dataset_features tables.
+app.get('/api/datasets/search', async (request, response) => {
+  const queryParam = String(request.query.q || '').trim();
+  if (!queryParam) {
+    return response.json({ results: [] });
+  }
+
+  const searchTerm = `%${queryParam}%`;
+
+  try {
+    const results = [];
+
+    // 1. Search datasets table
+    const datasetsRes = await pool.query(`
+      SELECT id, name, original_filename, feature_count, metadata
+      FROM datasets
+      WHERE name ILIKE $1 OR original_filename ILIKE $1 OR metadata::text ILIKE $1
+      ORDER BY created_at DESC
+      LIMIT 10
+    `, [searchTerm]);
+    for (const row of datasetsRes.rows) {
+      results.push({
+        id: row.id,
+        datasetId: row.id,
+        name: row.name,
+        type: 'Dataset',
+        featureCount: row.feature_count,
+        metadata: row.metadata
+      });
+    }
+
+    // 2. Search dataset_features table
+    const featuresRes = await pool.query(`
+      SELECT f.id, f.dataset_id, f.feature_index, f.properties, d.name as dataset_name,
+             ST_Y(ST_Centroid(ST_Transform(f.geom, 4326))) as lat,
+             ST_X(ST_Centroid(ST_Transform(f.geom, 4326))) as lng
+      FROM dataset_features f
+      JOIN datasets d ON f.dataset_id = d.id
+      WHERE f.properties::text ILIKE $1
+      LIMIT 15
+    `, [searchTerm]);
+    for (const row of featuresRes.rows) {
+      const featureName = row.properties?.name || row.properties?.Name || row.properties?.title || `Feature #${row.feature_index + 1}`;
+      results.push({
+        id: `df-${row.id}`,
+        datasetId: row.dataset_id,
+        featureIndex: row.feature_index,
+        datasetName: row.dataset_name,
+        name: featureName,
+        type: 'Dataset Feature',
+        coordinates: [Number(row.lat), Number(row.lng)],
+        properties: row.properties
+      });
+    }
+
+    response.json({ results });
+  } catch (error) {
+    console.error('Search error:', error);
+    response.status(500).json({ error: 'Search failed in database.' });
+  }
+});
+
 // Return one complete saved GeoJSON dataset.
 app.get('/api/datasets/:id', async (request, response) => {
   try {

@@ -212,48 +212,118 @@ async function selectLocation(location) {
             }
         }
         showOnlyDatasetLayer(location);
-        const featureLayer = location.featureIndex === undefined
-            ? savedLayer.layer
-            : savedLayer.layer.getLayers()[location.featureIndex];
-        const bounds = featureLayer?.getBounds ? featureLayer.getBounds() : savedLayer.layer.getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds.pad(.1));
+        const layersList = savedLayer.layer?.getLayers ? savedLayer.layer.getLayers() : [];
+        const featureLayer = (location.featureIndex !== undefined && layersList[location.featureIndex])
+            ? layersList[location.featureIndex]
+            : savedLayer.layer;
+
+        if (location.coordinates && Array.isArray(location.coordinates) && location.coordinates.length === 2) {
+            map.setView(location.coordinates, 13);
+        } else {
+            const bounds = featureLayer?.getBounds ? featureLayer.getBounds() : savedLayer.layer.getBounds();
+            if (bounds && bounds.isValid()) map.fitBounds(bounds.pad(.1));
+        }
+
         searchInput.value = location.name;
         searchResults.hidden = true;
         if (featureLayer?.openPopup) featureLayer.openPopup();
-        showFeedback(`Showing dataset "${location.name}".`);
+
+        // Display details in location sidebar
+        const propsDetail = location.properties
+            ? Object.entries(location.properties).map(([k, v]) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}`).join('<br>')
+            : `Dataset: ${escapeHtml(location.datasetName || location.name)}`;
+        const coordsText = (location.coordinates && location.coordinates[0])
+            ? `${location.coordinates[0].toFixed(5)}, ${location.coordinates[1].toFixed(5)}`
+            : 'Geospatial Dataset';
+
+        showLocationSidebar({
+            title: location.name,
+            coordinates: coordsText,
+            details: propsDetail
+        });
+
+        showFeedback(`Showing ${location.type || 'Dataset'}: "${location.name}".`);
         return;
     }
-    map.setView(location.coordinates, location.type === 'Region' ? 8 : 12);
-    if (searchMarker) map.removeLayer(searchMarker);
-    searchMarker = L.marker(location.coordinates).addTo(map)
-        .bindPopup(`<strong>${location.name}</strong><br>${location.type}`).openPopup();
+
+    if (location.coordinates && location.coordinates.length === 2) {
+        const zoomLevel = location.type === 'Region' ? 8 : (location.type === 'Corridor' ? 9 : 12);
+        map.setView(location.coordinates, zoomLevel);
+        if (searchMarker) map.removeLayer(searchMarker);
+        searchMarker = L.marker(location.coordinates).addTo(map)
+            .bindPopup(`<strong>${escapeHtml(location.name)}</strong><br>${escapeHtml(location.type || 'Location')}`).openPopup();
+        
+        const propsDetail = location.properties
+            ? Object.entries(location.properties).map(([k, v]) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}`).join('<br>')
+            : '';
+
+        showLocationSidebar({
+            title: location.name,
+            coordinates: `${location.coordinates[0].toFixed(5)}, ${location.coordinates[1].toFixed(5)}`,
+            details: propsDetail
+        });
+    }
+    
     searchInput.value = location.name;
     searchResults.hidden = true;
 }
 
-function runSearch() {
+let searchDebounceTimer;
+async function performLiveSearch(query) {
+    const staticMatches = databaseLocations.filter((location) =>
+        location.name.toLowerCase().includes(query.toLowerCase())
+    );
+    if (!query.trim()) return staticMatches;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/datasets/search?q=${encodeURIComponent(query.trim())}`);
+        if (response.ok) {
+            const data = await response.json();
+            const apiResults = data.results || [];
+            
+            const combined = [...apiResults, ...staticMatches];
+            const unique = [];
+            const seenKeys = new Set();
+            for (const item of combined) {
+                const key = `${item.name}-${item.type}-${item.datasetId || ''}-${item.featureIndex || ''}`;
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    unique.push(item);
+                }
+            }
+            return unique;
+        }
+    } catch (err) {
+        console.warn('Live search fallback to local records:', err);
+    }
+    return staticMatches;
+}
+
+async function runSearch() {
     const query = searchInput.value.trim();
     if (!query) {
         showAllDatasetLayers();
         return (searchResults.hidden = true);
     }
-    const match = databaseLocations.find((location) => location.name.toLowerCase() === query.toLowerCase());
-    if (match) return selectLocation(match);
-    showSearchResults(databaseLocations.filter((location) => location.name.toLowerCase().includes(query.toLowerCase())));
+    const matches = await performLiveSearch(query);
+    if (matches.length > 0) {
+        selectLocation(matches[0]);
+    } else {
+        showFeedback(`No location or dataset found for "${query}".`);
+    }
 }
 
-function showSearchSuggestions() {
-    const query = searchInput.value.trim().toLowerCase();
-    const matches = query
-        ? databaseLocations.filter((location) => location.name.toLowerCase().includes(query))
-        : databaseLocations;
-    showSearchResults(matches.slice(0, 6));
+async function showSearchSuggestions() {
+    const query = searchInput.value.trim();
+    const matches = await performLiveSearch(query);
+    showSearchResults(matches.slice(0, 8));
 }
 
 searchInput?.addEventListener('focus', showSearchSuggestions);
 searchInput?.addEventListener('click', showSearchSuggestions);
 searchInput?.addEventListener('input', () => {
-    const query = searchInput.value.trim().toLowerCase();
+    clearTimeout(searchDebounceTimer);
+    const query = searchInput.value.trim();
     if (!query) {
         showSearchSuggestions();
         showAllDatasetLayers();
@@ -264,7 +334,10 @@ searchInput?.addEventListener('input', () => {
         }
         return;
     }
-    showSearchResults(databaseLocations.filter((location) => location.name.toLowerCase().includes(query)).slice(0, 6));
+    searchDebounceTimer = setTimeout(async () => {
+        const matches = await performLiveSearch(query);
+        showSearchResults(matches.slice(0, 8));
+    }, 200);
 });
 searchInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') runSearch();
@@ -276,45 +349,103 @@ document.addEventListener('click', (event) => {
 });
 
 
-// connecting the map tools 
+// Connecting map control tools 
 // Zoom In
-document.getElementById("zoom-in").addEventListener("click", () => {
+document.getElementById("zoom-in")?.addEventListener("click", () => {
     map.zoomIn();
 });
 
 // Zoom Out
-document.getElementById("zoom-out").addEventListener("click", () => {
+document.getElementById("zoom-out")?.addEventListener("click", () => {
     map.zoomOut();
 });
 
-// Reset View
-document.getElementById("reset-view").addEventListener("click", () => {
+// 1. Basemap Layer Toggle Button (#basemap-toggle)
+if (basemapToggle) {
+    basemapToggle.addEventListener("click", () => {
+        const isCurrentlyStreet = activeBasemap === basemaps.street;
+        const newBasemapKey = isCurrentlyStreet ? 'satellite' : 'street';
+        
+        map.removeLayer(activeBasemap);
+        activeBasemap = basemaps[newBasemapKey].addTo(map);
+        
+        if (basemapSelect) basemapSelect.value = newBasemapKey;
+        
+        const isSatellite = newBasemapKey === 'satellite';
+        basemapToggle.classList.toggle('active', isSatellite);
+        basemapToggle.setAttribute('aria-pressed', String(isSatellite));
+        basemapToggle.title = isSatellite ? 'Switch to street map' : 'Switch to satellite map';
+        basemapToggle.setAttribute('aria-label', basemapToggle.title);
+        
+        showFeedback(`Switched to ${isSatellite ? 'Satellite' : 'Street'} basemap.`);
+    });
+}
+
+// 2. Reset View / Locate Ethiopia Button (#reset-view)
+document.getElementById("reset-view")?.addEventListener("click", () => {
     map.setView([9.03, 38.74], 6);
+    map.closePopup();
+    if (searchMarker) {
+        map.removeLayer(searchMarker);
+        searchMarker = null;
+    }
+    if (searchResults) searchResults.hidden = true;
+    if (searchInput) searchInput.value = '';
+    if (locationSidebar) locationSidebar.hidden = true;
+    showAllDatasetLayers();
+    setTimeout(() => map.invalidateSize(), 0);
+    showFeedback("Map view reset to Ethiopia.");
 });
 
+// 3. Fullscreen Map Button (#fullscreen-map)
 const fullscreenMapButton = document.getElementById('fullscreen-map');
 const appShell = document.querySelector('.app');
 const enterFullscreenIcon = '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" />';
 const exitFullscreenIcon = '<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" />';
 
-function updateFullscreenControl() {
-    const isFullscreen = document.fullscreenElement === appShell;
-    fullscreenMapButton.setAttribute('aria-pressed', String(isFullscreen));
-    fullscreenMapButton.setAttribute('aria-label', isFullscreen ? 'Exit fullscreen map' : 'Enter fullscreen map');
-    fullscreenMapButton.title = isFullscreen ? 'Exit fullscreen map' : 'Enter fullscreen map';
-    fullscreenMapButton.innerHTML = `<svg class="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${isFullscreen ? exitFullscreenIcon : enterFullscreenIcon}</svg>`;
-    setTimeout(() => map.invalidateSize(), 0);
+function isAppFullscreen() {
+    const nativeFS = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    return nativeFS === appShell || nativeFS === document.documentElement || Boolean(appShell?.classList.contains('fullscreen-mode'));
 }
 
-fullscreenMapButton.addEventListener('click', async () => {
-    try {
-        if (document.fullscreenElement) await document.exitFullscreen();
-        else await appShell.requestFullscreen();
-    } catch (error) {
-        showFeedback(`Fullscreen mode is unavailable: ${error.message}`);
+function updateFullscreenControl() {
+    const isFS = isAppFullscreen();
+    if (fullscreenMapButton) {
+        fullscreenMapButton.classList.toggle('active', isFS);
+        fullscreenMapButton.setAttribute('aria-pressed', String(isFS));
+        fullscreenMapButton.setAttribute('aria-label', isFS ? 'Exit fullscreen map' : 'Enter fullscreen map');
+        fullscreenMapButton.title = isFS ? 'Exit fullscreen map' : 'Enter fullscreen map';
+        fullscreenMapButton.innerHTML = `<svg class="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${isFS ? exitFullscreenIcon : enterFullscreenIcon}</svg>`;
     }
-});
-document.addEventListener('fullscreenchange', updateFullscreenControl);
+    setTimeout(() => map.invalidateSize(), 50);
+}
+
+if (fullscreenMapButton && appShell) {
+    fullscreenMapButton.addEventListener('click', async () => {
+        try {
+            if (isAppFullscreen()) {
+                if (document.exitFullscreen) await document.exitFullscreen();
+                else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
+                else if (document.mozCancelFullScreen) await document.mozCancelFullScreen();
+                else if (document.msExitFullscreen) await document.msExitFullscreen();
+                appShell.classList.remove('fullscreen-mode');
+            } else {
+                if (appShell.requestFullscreen) await appShell.requestFullscreen();
+                else if (appShell.webkitRequestFullscreen) await appShell.webkitRequestFullscreen();
+                else if (appShell.mozRequestFullScreen) await appShell.mozRequestFullScreen();
+                else if (appShell.msRequestFullscreen) await appShell.msRequestFullscreen();
+                else appShell.classList.add('fullscreen-mode');
+            }
+        } catch (error) {
+            appShell.classList.toggle('fullscreen-mode');
+        }
+        updateFullscreenControl();
+    });
+
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+        document.addEventListener(evt, updateFullscreenControl);
+    });
+}
 
 // FR-5 and FR-6: reverse geocoding and on-map measurement tools.
 const feedback = document.getElementById('map-feedback');
@@ -584,7 +715,59 @@ async function removeDataset(key) {
     } catch (error) { showFeedback(error.message); }
 }
 
+async function loadBaseSpatialLayers() {
+    try {
+        const layers = ['regions', 'cities', 'corridors'];
+        for (const layerName of layers) {
+            const res = await fetch(`${API_BASE}/api/layers/${layerName}`);
+            if (!res.ok) continue;
+            const geojson = await res.json();
+            if (!geojson.features || !geojson.features.length) continue;
+
+            const colorMap = { regions: '#087d6d', cities: '#e76f51', corridors: '#2a9d8f' };
+            const color = colorMap[layerName] || '#087d6d';
+            
+            const layerObj = L.geoJSON(geojson, {
+                style: { color, weight: 2, fillColor: color, fillOpacity: .2 },
+                pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 7, color, fillColor: color, fillOpacity: .85 }),
+                onEachFeature: (feature, layer) => {
+                    const name = feature.properties?.name || feature.id || layerName;
+                    layer.bindPopup(`<strong>${escapeHtml(name)}</strong><br><em>${escapeHtml(layerName.toUpperCase())}</em>`);
+                }
+            }).addTo(map);
+
+            const key = `base-${layerName}`;
+            layerRegistry[key] = { layer: layerObj, active: true, name: `Base ${layerName.toUpperCase()}`, datasetId: null };
+
+            geojson.features.forEach((feat) => {
+                const name = feat.properties?.name || feat.id;
+                if (!name) return;
+                let coords;
+                if (feat.geometry?.type === 'Point') {
+                    coords = [feat.geometry.coordinates[1], feat.geometry.coordinates[0]];
+                } else if (feat.geometry?.coordinates) {
+                    // Primitive center approximation for multi/polygon/line
+                    const c = feat.geometry.coordinates;
+                    const flat = Array.isArray(c[0]) ? (Array.isArray(c[0][0]) ? c[0][0] : c[0]) : c;
+                    if (flat && flat.length >= 2) coords = [flat[1], flat[0]];
+                }
+                if (coords) {
+                    databaseLocations.push({
+                        name: name,
+                        type: layerName.slice(0, -1).toUpperCase(),
+                        coordinates: coords,
+                        properties: feat.properties
+                    });
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('Base spatial layers could not be loaded from API:', e);
+    }
+}
+
 async function loadSavedDatasets() {
+    await loadBaseSpatialLayers();
     try {
         const response = await fetch(`${API_BASE}/api/datasets`);
         if (!response.ok) return;

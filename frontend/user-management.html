@@ -36,23 +36,31 @@
     </section>
   </main>
 
-  <!-- Create user dialog -->
-  <dialog id="create-dialog">
+  <!-- Create user dialog (Centered Hover Card Modal) -->
+  <dialog id="create-dialog" class="hover-card-modal">
     <form id="create-form">
-      <h2>Create user</h2>
-      <label>Username<input id="new-username" required maxlength="100" autocomplete="off"></label>
-      <label>Email<input id="new-email" type="email" required maxlength="255" autocomplete="off"></label>
-      <label>Password<input id="new-password" type="password" required maxlength="255" autocomplete="new-password"></label>
-      <label>Role
-        <select id="new-role">
-          <option value="user">User — can manage datasets</option>
-          <option value="admin">Admin — full access</option>
-        </select>
-      </label>
-      <div id="create-error" class="login-error" hidden></div>
-      <div class="dialog-actions">
-        <button id="create-cancel" type="button">Cancel</button>
-        <button class="primary" type="submit">Create user</button>
+      <div class="modal-header">
+        <h3>Create User</h3>
+        <button id="create-close" class="modal-close-btn" type="button" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div style="padding: 16px 20px;">
+        <label>Username<input id="new-username" required maxlength="100" autocomplete="off"></label>
+        <label>Email<input id="new-email" type="email" required maxlength="255" autocomplete="off"></label>
+        <label>Password
+          <input id="new-password" type="password" required maxlength="255" autocomplete="new-password">
+        </label>
+        <label>Role
+          <select id="new-role">
+            <option value="user">Standard User</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </label>
+        <div id="create-error" class="login-error" hidden style="margin-top: 12px;"></div>
+        <div class="dialog-actions" style="margin-top: 16px;">
+          <button id="create-cancel" type="button">Cancel</button>
+          <button class="primary" type="submit">Create User</button>
+        </div>
       </div>
     </form>
   </dialog>
@@ -72,6 +80,15 @@
     function escapeHtml(v = '') { const d = document.createElement('div'); d.textContent = v; return d.innerHTML; }
     function fmtDate(d) { return new Date(d).toLocaleDateString(); }
 
+    function validatePasswordPolicy(pwd) {
+      if (!pwd || pwd.length < 8) return 'Password must be at least 8 characters long.';
+      if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter (A-Z).';
+      if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter (a-z).';
+      if (!/\d/.test(pwd)) return 'Password must contain at least one number (0-9).';
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) return 'Password must contain at least one special character (!@#$%^&*...).';
+      return null;
+    }
+
     async function loadUsers() {
       const res = await fetchWithAuth('/api/users');
       if (!res.ok) { tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Could not load users.</td></tr>`; return; }
@@ -82,13 +99,13 @@
         <tr>
           <td><strong>${escapeHtml(u.username)}</strong></td>
           <td>${escapeHtml(u.email)}</td>
-          <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+          <td><span class="role-badge role-${u.role}">${u.role === 'admin' ? 'Administrator' : 'Standard User'}</span></td>
           <td><span class="status-badge ${u.is_active ? 'active' : 'inactive'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
           <td>${fmtDate(u.created_at)}</td>
           <td class="row-actions">
-            ${u.id !== '${user.id}' ? `
+            ${u.id !== user.id ? `
               <button class="btn-sm" data-toggle="${u.id}" data-active="${u.is_active}">${u.is_active ? 'Deactivate' : 'Activate'}</button>
-              <button class="btn-sm btn-role" data-role-id="${u.id}" data-role="${u.role}">${u.role === 'admin' ? 'Make user' : 'Make admin'}</button>
+              <button class="btn-sm btn-role" data-role-id="${u.id}" data-role="${u.role}">${u.role === 'admin' ? 'Make Standard User' : 'Make Administrator'}</button>
             ` : '<span class="you-label">You</span>'}
           </td>
         </tr>`).join('');
@@ -106,8 +123,9 @@
       if (roleId) {
         const currentRole = e.target.dataset.role;
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
+        const newRoleName = newRole === 'admin' ? 'Administrator' : 'Standard User';
         const res = await fetchWithAuth(`/api/users/${roleId}`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
-        if (res.ok) { showFeedback(`Role changed to ${newRole}.`); await loadUsers(); }
+        if (res.ok) { showFeedback(`Role changed to ${newRoleName}.`); await loadUsers(); }
         else showFeedback('Role update failed.');
       }
     });
@@ -118,15 +136,25 @@
       createDialog.showModal();
     });
     document.getElementById('create-cancel').addEventListener('click', () => createDialog.close());
+    document.getElementById('create-close').addEventListener('click', () => createDialog.close());
 
     document.getElementById('create-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const errBox = document.getElementById('create-error');
       errBox.hidden = true;
+
+      const pwd = document.getElementById('new-password').value;
+      const pwdErr = validatePasswordPolicy(pwd);
+      if (pwdErr) {
+        errBox.textContent = pwdErr;
+        errBox.hidden = false;
+        return;
+      }
+
       const res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify({
         username: document.getElementById('new-username').value.trim(),
         email: document.getElementById('new-email').value.trim(),
-        password: document.getElementById('new-password').value,
+        password: pwd,
         role: document.getElementById('new-role').value,
       }) });
       const data = await res.json();

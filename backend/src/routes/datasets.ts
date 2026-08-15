@@ -134,6 +134,68 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
+// 1b. GET /api/datasets/search?q=query - Search exclusively across datasets and dataset_features tables
+router.get('/search', async (req: Request, res: Response) => {
+  const queryParam = String(req.query.q || '').trim();
+  if (!queryParam) {
+    return res.json({ results: [] });
+  }
+
+  const searchTerm = `%${queryParam}%`;
+
+  try {
+    const results: any[] = [];
+
+    // 2. Search datasets table
+    const datasetsRes = await pool.query(`
+      SELECT id, name, original_filename, feature_count, metadata
+      FROM datasets
+      WHERE name ILIKE $1 OR original_filename ILIKE $1 OR metadata::text ILIKE $1
+      ORDER BY created_at DESC
+      LIMIT 10
+    `, [searchTerm]);
+    for (const row of datasetsRes.rows) {
+      results.push({
+        id: row.id,
+        datasetId: row.id,
+        name: row.name,
+        type: 'Dataset',
+        featureCount: row.feature_count,
+        metadata: row.metadata
+      });
+    }
+
+    // 3. Search dataset_features table (features stored inside datasets in PostgreSQL)
+    const featuresRes = await pool.query(`
+      SELECT f.id, f.dataset_id, f.feature_index, f.properties, d.name as dataset_name,
+             ST_Y(ST_Centroid(ST_Transform(f.geom, 4326))) as lat,
+             ST_X(ST_Centroid(ST_Transform(f.geom, 4326))) as lng
+      FROM dataset_features f
+      JOIN datasets d ON f.dataset_id = d.id
+      WHERE f.properties::text ILIKE $1
+      LIMIT 15
+    `, [searchTerm]);
+    for (const row of featuresRes.rows) {
+      const featureName = row.properties?.name || row.properties?.Name || row.properties?.title || `Feature #${row.feature_index + 1}`;
+      results.push({
+        id: `df-${row.id}`,
+        datasetId: row.dataset_id,
+        featureIndex: row.feature_index,
+        datasetName: row.dataset_name,
+        name: featureName,
+        type: 'Dataset Feature',
+        coordinates: [Number(row.lat), Number(row.lng)],
+        properties: row.properties
+      });
+    }
+
+    res.json({ results });
+  } catch (error: any) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Search failed in database.' });
+  }
+});
+
 // 2. GET /api/datasets/:id - Return one complete saved GeoJSON dataset
 // Geometry is rebuilt from dataset_features using ST_Transform(geom, 4326)
 // so any projected CRS (e.g. Ethiopian UTM) is reprojected to WGS84 that

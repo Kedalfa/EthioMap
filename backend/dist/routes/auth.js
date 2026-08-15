@@ -88,8 +88,115 @@ router.post('/logout', requireAuth, async (req, res) => {
     });
     res.json({ message: 'Logged out successfully.' });
 });
+import { validatePassword } from '../utils/passwordPolicy.js';
+const SALT_ROUNDS = 12;
 // GET /api/auth/me — return current user info
-router.get('/me', requireAuth, (req, res) => {
-    res.json({ user: req.user });
+router.get('/me', requireAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`SELECT id, username, email, role, is_active, created_at FROM users WHERE id = $1`, [req.user.id]);
+        if (!result.rowCount) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        const u = result.rows[0];
+        res.json({
+            user: {
+                id: u.id,
+                username: u.username,
+                email: u.email,
+                role: u.role,
+                is_active: u.is_active,
+                createdAt: u.created_at
+            }
+        });
+    }
+    catch (err) {
+        res.json({ user: req.user });
+    }
+});
+// PUT /api/auth/profile — update profile email/username
+router.post('/profile', requireAuth, async (req, res) => {
+    const { email, username } = req.body;
+    if (!email && !username) {
+        return res.status(400).json({ error: 'Username or email is required.' });
+    }
+    try {
+        const newEmail = email ? String(email).trim().toLowerCase() : null;
+        const newUsername = username ? String(username).trim() : null;
+        const result = await pool.query(`UPDATE users
+       SET email = COALESCE($1, email),
+           username = COALESCE($2, username)
+       WHERE id = $3
+       RETURNING id, username, email, role, is_active, created_at`, [newEmail, newUsername, req.user.id]);
+        if (!result.rowCount) {
+            return res.status(404).json({ error: 'User account not found.' });
+        }
+        const updatedUser = result.rows[0];
+        const newToken = signToken({
+            id: updatedUser.id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            role: updatedUser.role
+        });
+        await logActivity({
+            userId: updatedUser.id, username: updatedUser.username,
+            action: 'edit_profile', resourceType: 'user',
+            resourceId: updatedUser.id, resourceName: updatedUser.username,
+            ipAddress: getClientIp(req)
+        });
+        res.json({
+            token: newToken,
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                is_active: updatedUser.is_active,
+                createdAt: updatedUser.created_at
+            }
+        });
+    }
+    catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ error: 'Username or email is already taken by another account.' });
+        }
+        console.error('Profile update error:', err);
+        res.status(500).json({ error: 'Could not update profile information.' });
+    }
+});
+// PUT /api/auth/change-password — update user password
+router.put('/change-password', requireAuth, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current password and new password are required.' });
+    }
+    // Validate strong password policy (8+ chars, upper, lower, number, special char)
+    const validation = validatePassword(String(newPassword));
+    if (!validation.valid) {
+        return res.status(400).json({ error: validation.message });
+    }
+    try {
+        const userRes = await pool.query(`SELECT id, username, password_hash FROM users WHERE id = $1`, [req.user.id]);
+        if (!userRes.rowCount) {
+            return res.status(404).json({ error: 'User account not found.' });
+        }
+        const user = userRes.rows[0];
+        const passwordMatch = await bcrypt.compare(String(currentPassword), user.password_hash);
+        if (!passwordMatch) {
+            return res.status(400).json({ error: 'Current password is incorrect.' });
+        }
+        const newHash = await bcrypt.hash(String(newPassword), SALT_ROUNDS);
+        await pool.query(`UPDATE users SET password_hash = $1, failed_attempts = 0, locked_until = NULL WHERE id = $2`, [newHash, user.id]);
+        await logActivity({
+            userId: user.id, username: user.username,
+            action: 'change_password', resourceType: 'user',
+            resourceId: user.id, resourceName: user.username,
+            ipAddress: getClientIp(req)
+        });
+        res.json({ message: 'Password updated successfully.' });
+    }
+    catch (err) {
+        console.error('Password update error:', err);
+        res.status(500).json({ error: 'Could not change password.' });
+    }
 });
 export default router;

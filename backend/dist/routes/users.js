@@ -18,11 +18,17 @@ router.get('/', requireAdmin, async (_req, res) => {
         res.status(500).json({ error: 'Could not load users.' });
     }
 });
+import { validatePassword } from '../utils/passwordPolicy.js';
 // POST /api/users — create a new user (admin only)
 router.post('/', requireAdmin, async (req, res) => {
     const { username, email, password, role } = req.body;
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'Username, email and password are required.' });
+    }
+    // Enforce strong password policy (8+ digits/chars, upper, lower, number, special char)
+    const validation = validatePassword(String(password));
+    if (!validation.valid) {
+        return res.status(400).json({ error: validation.message });
     }
     const allowedRoles = ['admin', 'user'];
     const userRole = allowedRoles.includes(role) ? role : 'user';
