@@ -6,6 +6,7 @@
   <title>EthioMap | Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
   <header class="topbar">
@@ -14,17 +15,18 @@
       <span><strong>EthioMap</strong><small>Map Information Subsystem</small></span>
     </a>
     <nav class="top-nav">
-      <span id="user-display" class="user-display"></span>
-      <a href="Ethiomap.html" class="nav-link">Map view</a>
+      <a href="Ethiomap.html" class="nav-link">Map</a>
+      <a href="about.html" class="nav-link">About Us</a>
       <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
+      <a href="profile.html" class="nav-link profile-nav" aria-label="Open profile" title="Profile"><svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path></svg></a>
     </nav>
   </header>
   <main class="dash-main">
-    <div class="dash-heading">
-      <div class="eyebrow">Admin Dashboard</div>
-      <h1 id="welcome-title">Welcome back</h1>
-      <p>Manage datasets, users, and system activity from here.</p>
+    <div class="dash-intro">
+      <div id="dashboard-eyebrow" class="eyebrow">Admin Dashboard</div>
+      <p id="dashboard-description">Manage datasets, users, and system activity from here.</p>
     </div>
+    <h1 id="welcome-title" class="dashboard-welcome">Welcome back</h1>
     <!-- Stat cards -->
     <div class="stat-grid">
       <div class="stat-card">
@@ -107,7 +109,10 @@
     if (!user) throw new Error('Not authenticated');
 
     document.getElementById('welcome-title').textContent = `Welcome back, ${user.username}`;
-    document.getElementById('user-display').textContent = `${user.username} · ${user.role}`;
+    document.getElementById('dashboard-eyebrow').textContent = user.role === 'admin' ? 'Admin Dashboard' : 'User Dashboard';
+    document.getElementById('dashboard-description').textContent = user.role === 'admin'
+      ? 'Manage datasets, users, and system activity from here.'
+      : 'Manage datasets.';
 
     // Hide admin-only sections for regular users
     if (user.role !== 'admin') {

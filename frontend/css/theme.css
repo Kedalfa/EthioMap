@@ -1,0 +1,138 @@
+/* Shared EthioMap visual language used by every page. */
+:root {
+  --theme-ink: #071b2d;
+  --theme-navy: #0c2d43;
+  --theme-teal: #00a78d;
+  --theme-dark-teal: #087d6d;
+  --theme-mint: #e6f7f3;
+  --theme-muted: #6e8090;
+  --theme-line: #dfe9e8;
+  --theme-bg: #edf3f4;
+  --theme-danger: #b42318;
+  --theme-danger-bg: #fdf2f2;
+  --theme-radius: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  color: var(--theme-ink);
+  font-family: "DM Sans", sans-serif;
+}
+
+h1, h2, h3, .brand strong {
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.topbar {
+  min-height: 70px;
+  padding: 0 max(28px, 6vw);
+  display: flex;
+  align-items: center;
+  color: white;
+  background: linear-gradient(110deg, var(--theme-ink), #104457);
+  box-shadow: 0 4px 16px rgba(5, 32, 51, .15);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: white;
+  text-decoration: none;
+}
+
+.brand-mark { background-image: url(../flag.jpg); background-size: contain; background-repeat: no-repeat; background-position: center; width:50px; height:50px; display:grid; place-items:center; color:white; font:21px Georgia,serif; border-radius:10px 10px 10px 2px; transform:rotate(-8deg); }
+
+.brand strong { display: block; font-size: 18px; }
+.brand small {
+  display: block;
+  color: #9fb1bd;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.nav-link, .back-link {
+  padding: 8px 14px;
+  color: #8ce4d1;
+  font-size: 12px;
+  text-decoration: none;
+  border: 1px solid #315066;
+  border-radius: 7px;
+  transition: all .2s ease;
+}
+
+.nav-link:hover, .back-link:hover {
+  color: white;
+  background: #163249;
+}
+
+.profile-nav {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items:center;
+  padding: 0;
+}
+
+.profile-icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.logout-btn {
+  padding: 8px 14px;
+  color: #f7aab1;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid #663138;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.logout-btn:hover {
+  color: white;
+  background: #541d23;
+}
+
+.primary-action, .dialog-actions .primary {
+  background: var(--theme-teal);
+  border-color: var(--theme-teal);
+}
+
+.primary-action:hover, .dialog-actions .primary:hover {
+  background: var(--theme-dark-teal);
+  border-color: var(--theme-dark-teal);
+}
+
+input, select, textarea {
+  font-family: "DM Sans", sans-serif;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--theme-teal);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 167, 141, .2);
+}
+
+@media (max-width: 600px) {
+  .topbar { padding: 0 20px; }
+  .brand small { display: none; }
+}
+.top-nav a{
+  align-self:flex-end;
+}

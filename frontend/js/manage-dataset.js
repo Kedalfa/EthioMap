@@ -1,4 +1,5 @@
-const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:5000';
+import { requireAuth, logout, fetchWithAuth } from './auth.js';
+const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:4000';
 const datasetList = document.getElementById('dataset-list');
 const datasetCount = document.getElementById('dataset-count');
 const datasetSearch = document.getElementById('dataset-search');
@@ -11,8 +12,9 @@ let editingDataset;
 function escapeHtml(value = '') { const element = document.createElement('div'); element.textContent = value; return element.innerHTML; }
 function showFeedback(message) { feedback.textContent = message; feedback.hidden = false; setTimeout(() => { feedback.hidden = true; }, 3500); }
 
+// Use fetchWithAuth for all requests (adds Bearer token automatically)
 async function api(url, options = {}) {
-    return fetch(`${API_BASE}${url}`, { ...options, headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) } });
+    return fetchWithAuth(url, { ...options, headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) } });
 }
 
 function renderDatasets() {
@@ -57,4 +59,12 @@ document.getElementById('upload-form').addEventListener('submit', async (event) 
     event.preventDefault(); const file = document.getElementById('geojson-file').files[0]; if (!file) return;
     try { const geojson = JSON.parse(await file.text()); if (!['Feature', 'FeatureCollection'].includes(geojson.type)) throw new Error('The file must be a GeoJSON Feature or FeatureCollection.'); const response = await api('/api/datasets', { method: 'POST', body: JSON.stringify({ filename: file.name, name: document.getElementById('upload-name').value.trim() || file.name, geojson, metadata: metadata('upload') }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Dataset upload failed.'); uploadDialog.close(); document.getElementById('upload-form').reset(); document.getElementById('upload-crs').value = 'EPSG:4326'; await loadDatasets(); showFeedback('Dataset uploaded successfully.'); } catch (error) { showFeedback(error.message); }
 });
+// Auth guard — redirects to login if not signed in
+const currentUser = await requireAuth();
+if (!currentUser) throw new Error('Not authenticated');
+
+// Logout button (if present in the page header)
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
 loadDatasets();

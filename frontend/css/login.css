@@ -1,8 +1,9 @@
 /* Reset default spacing and use predictable box sizing. */
 *{margin:0; padding:0; box-sizing:border-box;}
 
-/* Center the login screen over the dark branded background. */
-body{font-family:"DM Sans",sans-serif; background:linear-gradient(135deg,#071b2d,#0c344d); display:flex; justify-content:center; align-items:center; height:100vh;}
+/* Keep the shared header at the top and center the login screen below it. */
+body{font-family:"DM Sans",sans-serif; background:linear-gradient(135deg,#071b2d,#0c344d); min-height:100vh;}
+.login-main{min-height:calc(100vh - 70px); display:flex; justify-content:center; align-items:center; padding:36px 20px;}
 
 /* Limit the login content width while keeping it responsive. */
 .login-container{width:100%; max-width:420px; padding:20px;}
@@ -36,3 +37,19 @@ button:hover{background:#008b74;}
 .back{display:block; text-align:center; margin-top:20px; text-decoration:none; color:#0c344d; font-weight:600;}
 
 .back:hover{color:#00a78d;}
+
+/* Error message box */
+.login-error{background:#fff0f1; border:1px solid #f5c6cb; color:#c0392b; padding:12px 16px; border-radius:8px; font-size:14px; margin-bottom:16px;}
+
+/* Disabled state for the submit button during request */
+button:disabled{opacity:.65; cursor:not-allowed;}
+
+/* Brief shake animation on error */
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+.shake{animation:shake .4s ease;}
