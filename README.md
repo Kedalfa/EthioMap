@@ -1,104 +1,13 @@
-# EthioMap GIS Platform
+# Ethio-Map
 
-This is an Ethiopian Geographical Information System.
+Ethio-Map is a web-based contribution platform for mapping and sharing geographic information about Ethiopia.
 
-## Prerequisites
+The project includes:
 
-* **Node.js** v18+
-* **PostgreSQL** with the **PostGIS** extension enabled
-* Configure database credentials in `backend/.env`:
+- `backend/` – Server-side application and database connection
+- `frontend/` – User interface and web pages
+- `database/` – Database schema and SQL files
 
-```env
-DATABASE_URL=postgresql://postgres:username@localhost:5432/ethio_map
-PORT=4000
-```
+## Purpose
 
----
-
-## One-Time Setup
-
-Open a terminal in the `EthioMap/` folder and run:
-
-```powershell
-# Install root dependencies
-npm install
-
-# Install backend dependencies and build
-npm run setup
-
-# Build the backend TypeScript
-npm run build
-```
-
----
-
-## Running the System
-
-From the `EthioMap/` folder, run:
-
-```powershell
-npm start
-```
-
-This starts **both services** simultaneously:
-
-| Service      | URL                                 | Description           |
-| ------------ | ----------------------------------- | --------------------- |
-| **Backend**  | http://localhost:4000               | REST API (PostgreSQL) |
-| **Frontend** | http://localhost:5500/Ethiomap.html | Interactive Map UI    |
-
-Open **http://localhost:5500/Ethiomap.html** in your browser.
-
----
-
-## Backend API Endpoints
-
-| Method   | Endpoint            | Description                         |
-| -------- | ------------------- | ----------------------------------- |
-| `GET`    | `/api/health`       | Health check (DB connection status) |
-| `GET`    | `/api/datasets`     | List all uploaded datasets          |
-| `POST`   | `/api/datasets`     | Upload a new GeoJSON dataset        |
-| `GET`    | `/api/datasets/:id` | Get GeoJSON for a dataset           |
-| `PUT`    | `/api/datasets/:id` | Edit dataset name and metadata      |
-| `DELETE` | `/api/datasets/:id` | Delete a dataset                    |
-
----
-
-## Project Structure
-
-```text
-EthioMap/
-├── backend/
-│   ├── src/
-│   ├── .env
-│   └── ...
-├── frontend/
-│   ├── css/
-│   ├── js/
-│   ├── Ethiomap.html
-│   └── ...
-├── package.json
-└── README.md
-```
-
----
-
-## Technologies Used
-
-### Frontend
-
-* HTML
-* CSS
-* JavaScript
-* Leaflet.js
-
-### Backend
-
-* Node.js
-* TypeScript
-* Express.js
-* PostgreSQL
-* PostGIS
-
----
-
+The system helps users contribute, manage, and view location-based information through an interactive web application.
