@@ -15,9 +15,6 @@ h1, h2 { font-family:"Space Grotesk",sans-serif; }
 h1 { margin:6px 0 6px; font-size:32px; }
 .page-heading p { margin:0; color:var(--muted); }
 .tag { padding:7px 11px; color:#087d6d; font-size:12px; font-weight:700; white-space:nowrap; background:#e6f7f3; border-radius:20px; }
-.page-actions { display:flex; align-items:center; gap:10px; }
-.primary-action { padding:9px 13px; color:white; font:700 12px "DM Sans",sans-serif; background:var(--teal); border:1px solid var(--teal); border-radius:7px; cursor:pointer; }
-.primary-action:hover { background:#087d6d; border-color:#087d6d; }
 .dataset-search-wrap { position:relative; margin-bottom:20px; }
 .dataset-search-wrap input { width:100%; height:44px; margin:0; padding:0 16px 0 42px; color:var(--ink); background:white; border:1px solid #d9e9e7; border-radius:9px; outline:none; font-size:13px; }
 .dataset-search-wrap input:focus { border-color:var(--teal); box-shadow:0 0 0 3px #00a78d33; }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EthioMap | Manage Datasets</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/manage-dataset.css?v=dataset-management-1">
+  <link rel="stylesheet" href="css/manage-dataset.css">
 </head>
 <body>
   <header class="topbar">
@@ -15,18 +15,14 @@
   <main class="page">
     <div class="page-heading">
       <div><div class="eyebrow">Dataset management</div><h1>Manage map layers</h1><p>Review, edit, or remove the datasets available on your map.</p></div>
-      <span id="dataset-count" class="tag">Loading...</span>
-    </div>
-    <div class="dataset-search-wrap">
-      <span class="dataset-search-icon">⌕</span>
-      <input id="dataset-search" type="search" placeholder="Search datasets by name..." aria-label="Search datasets by name" autocomplete="off">
+      <span id="dataset-count" class="tag">0 datasets</span>
     </div>
     <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-    <section id="dataset-list" class="dataset-list" aria-live="polite"><div class="empty-state">Loading datasets...</div></section>
+    <section id="dataset-list" class="dataset-list" aria-live="polite"></section>
   </main>
   <dialog id="edit-dialog">
     <form id="edit-form">
-      <h2>Edit dataset</h2>
+      <h2>Dataset's Metadata</h2>
       <label>Dataset name<input id="edit-name" required maxlength="255"></label>
       <label>Description<textarea id="edit-description" maxlength="2000" rows="3"></textarea></label>
       <label>Coordinate reference system<input id="edit-crs" maxlength="100" placeholder="EPSG:4326"></label>
@@ -35,6 +31,6 @@
       <div class="dialog-actions"><button id="edit-cancel" type="button">Cancel</button><button class="primary" type="submit">Save changes</button></div>
     </form>
   </dialog>
-  <script src="js/manage-dataset.js?v=dataset-management-1"></script>
+  <script src="js/manage-dataset.js"></script>
 </body>
 </html>
