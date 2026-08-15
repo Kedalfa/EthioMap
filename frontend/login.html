@@ -1,38 +1,68 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#071b2d">
-  <title>EthioMap | Sign In</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/login.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EthioMap | Autorized User</title>
+
+    <!-- Use the page-specific login styles. -->
+    <link rel="stylesheet" href="./css/login.css">
+
+    <!-- Load the fonts used by the login page. -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+<!-- Center the login card within the page. -->
 <div class="login-container">
-  <div class="logo">
-    <div class="logo-icon">E</div>
-    <h1>EthioMap</h1>
-    <p>Map Information Subsystem</p>
-  </div>
-  <div class="login-card">
-    <h2>Sign in</h2>
-    <p class="subtitle">Sign in to upload and manage spatial datasets.</p>
-    <div id="login-error" class="login-error" role="alert" hidden></div>
-    <form id="login-form" autocomplete="on" novalidate>
-      <div class="input-group">
-        <label for="login-username">Username</label>
-        <input id="login-username" type="text" name="username" placeholder="Enter your username" required autocomplete="username">
-      </div>
-      <div class="input-group">
-        <label for="login-password">Password</label>
-        <input id="login-password" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-      </div>
-      <button id="login-submit" type="submit">Sign in</button>
-    </form>
-    <a href="Ethiomap.html" class="back">← Back to Map</a>
-  </div>
+
+    <!-- Display the EthioMap identity above the form. -->
+    <div class="logo">
+        <div class="logo-icon">E</div>
+        <h1>EthioMap</h1>
+        <p>Map Information Subsystem</p>
+    </div>
+
+    <!-- Login form container. -->
+    <div class="login-card">
+
+        <h2>Administrator Login</h2>
+        <p class="subtitle">
+            Sign in to upload and manage spatial datasets.
+        </p>
+
+        <!-- Credential fields and submit action. -->
+        <form>
+
+            <div class="input-group">
+                <label>Email</label>
+                <input
+                    type="email"
+                    placeholder="admin@example.com"
+                    required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input
+                    type="password"
+                    placeholder="Enter password"
+                    required>
+            </div>
+
+            <button type="submit">
+                Login
+            </button>
+
+        </form>
+
+        <a href="Ethiomap.html" class="back">
+            ← Back to Map
+        </a>
+
+    </div>
+
 </div>
-<script src="js/login.js"></script>
+
 </body>
 </html>
