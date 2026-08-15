@@ -12,7 +12,11 @@
 <body>
   <header class="topbar">
     <a class="brand" href="Ethiomap.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
-    <a class="back-link" href="Ethiomap.html">Map</a>
+    <div class="top-nav" id="top-nav-actions" style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+      <a class="nav-link" href="Ethiomap.html">Map</a>
+      <a class="nav-link" href="about.html">About Us</a>
+      <a class="login-btn" href="login.html" id="nav-login-btn" style="padding: 7px 13px; color: #8ce4d1; font-size: 12px; text-decoration: none; border: 1px solid #315066; border-radius: 7px;">Login</a>
+    </div>
   </header>
   <main>
     <section class="hero">
@@ -37,5 +41,57 @@
     </section>
   </main>
   <footer>EthioMap · Map Information Subsystem</footer>
+
+  <!-- Dynamic Auth Navbar Updater -->
+  <script type="module">
+    import { getMe, logout } from './js/auth.js';
+
+    const topNavActions = document.getElementById('top-nav-actions');
+
+    async function updateNavbarForAuth() {
+      const user = await getMe();
+      if (user && topNavActions) {
+        // User is signed in! Remove static Login button
+        const loginBtn = document.getElementById('nav-login-btn');
+        if (loginBtn) loginBtn.remove();
+
+        // Add Dashboard link if not present
+        if (!document.getElementById('nav-dashboard-link')) {
+          const dashLink = document.createElement('a');
+          dashLink.id = 'nav-dashboard-link';
+          dashLink.className = 'nav-link';
+          dashLink.style.cssText = 'padding: 7px 13px; color: #8ce4d1; font-size: 12px; text-decoration: none; border: 1px solid #315066; border-radius: 7px;';
+          dashLink.href = 'dashboard.html';
+          dashLink.textContent = 'Dashboard';
+          topNavActions.appendChild(dashLink);
+        }
+
+        // Add Sign out button if not present
+        if (!document.getElementById('logout-btn')) {
+          const logoutBtn = document.createElement('button');
+          logoutBtn.id = 'logout-btn';
+          logoutBtn.style.cssText = 'padding: 7px 13px; color: #f7aab1; font-size: 12px; background: transparent; border: 1px solid #723b43; border-radius: 7px; cursor: pointer;';
+          logoutBtn.type = 'button';
+          logoutBtn.textContent = 'Sign out';
+          logoutBtn.addEventListener('click', logout);
+          topNavActions.appendChild(logoutBtn);
+        }
+
+        // Add Profile link button with icon if not present
+        if (!document.getElementById('nav-profile-link')) {
+          const profileLink = document.createElement('a');
+          profileLink.id = 'nav-profile-link';
+          profileLink.style.cssText = 'padding: 7px 13px; color: #8ce4d1; font-size: 12px; text-decoration: none; border: 1px solid #315066; border-radius: 7px; display: inline-flex; align-items: center;';
+          profileLink.href = 'profile.html';
+          profileLink.title = `Profile (${user.username})`;
+          profileLink.setAttribute('aria-label', 'Open profile');
+          profileLink.innerHTML = `<svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false" style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path></svg>`;
+          topNavActions.appendChild(profileLink);
+        }
+      }
+    }
+
+    updateNavbarForAuth();
+  </script>
 </body>
 </html>

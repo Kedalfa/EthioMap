@@ -35,9 +35,48 @@ html, body { height:100%; margin:0; overflow:hidden; color:var(--ink); font-fami
 .basemap-picker { display:flex; align-items:center; gap:7px; color:#a8c0c4; font-size:11px; white-space:nowrap; }
 .basemap-picker select { height:38px; padding:0 28px 0 10px; color:white; background:#163249; border:1px solid #315066; border-radius:8px; outline:none; }
 .basemap-picker select:focus { border-color:#55d8c0; box-shadow:0 0 0 3px #00a78d33; }
-.icon-button { min-width:38px; height:38px; color:white; background:transparent; border:1px solid #315066; border-radius:8px; }
-.about-link { display:inline-flex; align-items:center; justify-content:center; min-width:auto; padding:0 13px; font-size:12px; font-weight:700; text-decoration:none; }
-.about-link:hover { color:#8ce4d1; background:#163249; }
+.top-actions .nav-link {
+  padding: 7px 13px;
+  color: #8ce4d1;
+  font-size: 12px;
+  text-decoration: none;
+  border: 1px solid #315066;
+  border-radius: 7px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+}
+
+.top-actions .nav-link:hover {
+  color: white;
+  background: #163249;
+}
+
+.top-actions .logout-btn {
+  padding: 7px 13px;
+  color: #f7aab1;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid #723b43;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.top-actions .logout-btn:hover {
+  background: #3e1b21;
+  color: #ffa1ab;
+}
+
+.top-actions .profile-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  display: block;
+}
 
 /* Main workspace and CSS-only map background. */
 .workspace { height:calc(100vh - 70px); position:relative; }
