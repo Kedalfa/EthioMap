@@ -97,9 +97,9 @@ h1 { font-family:"Space Grotesk",sans-serif; }
 .map-tools button.active { color:white; background:var(--teal); }
 .layers-icon { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; }
 .fullscreen-icon { width:18px; height:18px; fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; stroke-width:2; vertical-align:middle; }
-.app:fullscreen .topbar { display:none; }
-.app:fullscreen .workspace { height:100vh; }
-.app:fullscreen #map { height:100%; }
+.app:fullscreen .topbar, .app.fullscreen-mode .topbar { display:none; }
+.app:fullscreen .workspace, .app.fullscreen-mode .workspace { height:100vh; }
+.app:fullscreen #map, .app.fullscreen-mode #map { height:100%; }
 .map-feedback { position:absolute; z-index:800; left:50%; bottom:20px; max-width:min(560px, calc(100% - 40px)); transform:translateX(-50%); padding:10px 14px; color:white; font-size:12px; text-align:center; background:#071b2de8; border-radius:8px; box-shadow:0 8px 24px #05203324; }
 .location-sidebar { position:absolute; z-index:950; top:18px; right:18px; bottom:18px; width:340px; overflow-y:auto; background:white; border:1px solid rgba(255,255,255,.7); border-radius:14px; box-shadow:0 16px 38px #05203328; }
 .location-sidebar[hidden] { display:none; }
