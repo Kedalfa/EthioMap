@@ -136,3 +136,148 @@ input:focus, select:focus, textarea:focus {
 .top-nav a{
   align-self:flex-end;
 }
+
+/* Text navigation keeps the header light and makes the avatar the final item. */
+.top-nav .nav-item,
+.top-actions .nav-item {
+  padding: 8px 0;
+  color: #b7cbc9;
+  font: 500 15px "DM Sans", sans-serif;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.top-nav .nav-item:hover,
+.top-actions .nav-item:hover {
+  color: #8ce4d1;
+  background: transparent;
+}
+
+.top-nav { gap: 24px; }
+.top-nav .profile-avatar-button { margin-left: 4px; }
+
+/* Shared dashboard typography for every regular application page. */
+body, button, input, select, textarea { font-family: "DM Sans", sans-serif; }
+h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
+
+.profile-avatar-button {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  color: #fff;
+  font: 600 15px "DM Sans", sans-serif;
+  background: #a37a70;
+  border: 2px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+  cursor: pointer;
+  margin-left: auto;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.profile-avatar-button > span {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.profile-avatar-button:hover,
+.profile-avatar-button[aria-expanded="true"] {
+  color: #fff;
+  background: #b68b80;
+  box-shadow: 0 0 0 3px rgba(140, 228, 209, .24);
+  transform: translateY(-1px);
+}
+
+/* Map header link rules must not override the circular account avatar. */
+.top-actions .profile-avatar-button {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  color: #fff;
+  background: #a37a70;
+  border: 2px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+}
+
+.top-actions .profile-avatar-button:hover,
+.top-actions .profile-avatar-button[aria-expanded="true"] {
+  color: #fff;
+  background: #b68b80;
+}
+
+.account-menu {
+  position: fixed;
+  z-index: 2000;
+  top: 62px;
+  right: max(18px, 4vw);
+  width: min(360px, calc(100vw - 32px));
+  overflow: hidden;
+  color: #edf7f6;
+  background: #102020;
+  border: 1px solid #31504d;
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(2, 16, 22, .42);
+}
+
+.account-menu-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 14px;
+  padding: 18px;
+  background: #1d3735;
+  border-radius: 12px;
+}
+
+.account-menu-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: #fff;
+  font-size: 26px;
+  background: #a37a70;
+  border-radius: 50%;
+}
+
+.account-menu-summary > div strong,
+.account-menu-summary > div span,
+.account-menu-summary > div em { display: block; }
+.account-menu-summary > div strong { font-size: 15px; }
+.account-menu-summary div > span { margin-top: 3px; color: #c8d9d7; font-size: 12px; overflow-wrap: anywhere; }
+.account-menu-summary em { width: fit-content; margin-top: 8px; padding: 3px 7px; color: #9ee5d5; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; background: #143f3a; border-radius: 20px; }
+.account-menu-actions { padding: 4px 8px 10px; border-top: 1px solid #31504d; }
+.account-menu-note { padding: 10px; color: #aac1bf; font-size: 12px; }
+.account-menu-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 10px; color: #edf7f6; font: 14px "DM Sans", sans-serif; text-align: left; text-decoration: none; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.account-menu-item:hover { background: #1d3735; }
+.account-menu-item svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.account-menu-signout { color: #ffbec3; }
+
+.account-dialog { width: min(420px, calc(100vw - 32px)); padding: 0; color: var(--theme-ink); border: 0; border-radius: 14px; box-shadow: 0 20px 60px rgba(2, 16, 22, .35); }
+.account-dialog::backdrop { background: rgba(7, 27, 45, .58); }
+.account-dialog-form { padding: 22px; }
+.account-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.account-dialog h2 { margin: 0; font-size: 20px; }
+.account-dialog p { margin: 8px 0 16px; color: var(--theme-muted); font-size: 12px; line-height: 1.5; }
+.account-dialog label { display: block; margin-top: 12px; color: #526977; font-size: 12px; font-weight: 700; }
+.account-dialog input { width: 100%; margin-top: 5px; padding: 9px 10px; color: var(--theme-ink); border: 1px solid #d9e9e7; border-radius: 7px; }
+.account-dialog-close { width: 30px; height: 30px; padding: 0; color: #526977; font-size: 20px; line-height: 1; background: #f2f8f7; border: 1px solid #d9e9e7; border-radius: 7px; cursor: pointer; }
+.account-dialog-message { display: block; min-height: 18px; margin-top: 12px; color: var(--theme-danger); font-size: 12px; }
+.account-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.account-dialog-actions button { padding: 8px 12px; color: var(--theme-ink); background: #fff; border: 1px solid #d9e9e7; border-radius: 7px; cursor: pointer; }
+.account-dialog-actions .primary { color: #fff; background: var(--theme-teal); border-color: var(--theme-teal); }
+
+@media (max-width: 600px) {
+  .account-menu { top: 54px; right: 12px; }
+}

@@ -3,9 +3,6 @@
 html, body { min-height:100%; margin:0; color:var(--ink); font-family:"DM Sans",sans-serif; background:#edf3f4; }
 .topbar { min-height:70px; padding:0 6vw; display:flex; align-items:center; color:white; background:linear-gradient(110deg,#071b2d,#104457); }
 .brand { display:flex; align-items:center; gap:11px; color:white; text-decoration:none; }
-.brand-mark { width:42px; height:42px; display:grid; place-items:center; color:white; font:21px Georgia,serif; background:#087d6d; border-radius:10px 10px 10px 2px; }
-.brand strong { display:block; font:18px "Space Grotesk",sans-serif; }
-.brand small { display:block; color:#9fb1bd; font-size:10px; letter-spacing:1.2px; text-transform:uppercase; }
 .back-link { margin-left:auto; padding:9px 14px; color:#8ce4d1; font-size:12px; text-decoration:none; border:1px solid #315066; border-radius:7px; }
 .back-link:hover { color:white; background:#163249; }
 .page { width:min(1080px, calc(100% - 40px)); margin:0 auto; padding:48px 0 70px; }
