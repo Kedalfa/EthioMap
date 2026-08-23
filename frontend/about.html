@@ -15,7 +15,7 @@
     <div class="top-nav" id="top-nav-actions" style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
       <a class="nav-link nav-item" href="Ethiomap.html">Map</a>
       <a class="nav-link nav-item" href="about.html">About Us</a>
-      <a class="login-btn" href="login.html" id="nav-login-btn" style="padding: 7px 13px; color: #8ce4d1; font-size: 12px; text-decoration: none; border: 1px solid #315066; border-radius: 7px;">Login</a>
+      <a class="upload-dataset" href="login.html" id="nav-login-btn">Login</a>
     </div>
   </header>
   <main>
@@ -60,10 +60,9 @@
         if (!document.getElementById('nav-dashboard-link')) {
           const dashLink = document.createElement('a');
           dashLink.id = 'nav-dashboard-link';
-          dashLink.className = 'nav-link';
-          dashLink.style.cssText = 'padding: 7px 13px; color: #8ce4d1; font-size: 12px; text-decoration: none; border: 1px solid #315066; border-radius: 7px;';
+          dashLink.className = 'nav-link nav-item';
           dashLink.href = 'dashboard.html';
-          dashLink.textContent = '← Dashboard';
+          dashLink.textContent = 'Dashboard';
           topNavActions.appendChild(dashLink);
         }
 

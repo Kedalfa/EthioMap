@@ -202,8 +202,7 @@
         showModalMessage(editProfileMsg, 'Profile details updated successfully!', 'success');
 
         setTimeout(() => {
-          editProfileModal.close();
-          editProfileMsg.hidden = true;
+          window.location.assign('dashboard.html');
         }, 1200);
       } catch (err) {
         showModalMessage(editProfileMsg, err.message || 'Error updating profile.', 'error');
@@ -292,8 +291,7 @@
         showModalMessage(pwdModalMsg, 'Password changed successfully!', 'success');
 
         setTimeout(() => {
-          changePwdModal.close();
-          resetPasswordModal();
+          window.location.assign('dashboard.html');
         }, 1200);
       } catch (err) {
         showModalMessage(pwdModalMsg, err.message || 'Error changing password.', 'error');

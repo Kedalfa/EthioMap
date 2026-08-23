@@ -155,8 +155,34 @@ input:focus, select:focus, textarea:focus {
   background: transparent;
 }
 
+/* Highlight the navigation item for the page currently being viewed. */
+.top-nav .nav-item.active,
+.top-actions .nav-item.active {
+  color: #8ce4d1;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
 .top-nav { gap: 24px; }
 .top-nav .profile-avatar-button { margin-left: 4px; }
+
+/* Use the same Login control across the Map and About Us headers. */
+.upload-dataset {
+  display: inline-flex;
+  width: 150px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-right: 50px;
+  color: #8ce4d1;
+  font-size: 15px;
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid #315066;
+  border-radius: 20px;
+}
 
 /* Shared dashboard typography for every regular application page. */
 body, button, input, select, textarea { font-family: "DM Sans", sans-serif; }
@@ -274,10 +300,73 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
 .account-dialog input { width: 100%; margin-top: 5px; padding: 9px 10px; color: var(--theme-ink); border: 1px solid #d9e9e7; border-radius: 7px; }
 .account-dialog-close { width: 30px; height: 30px; padding: 0; color: #526977; font-size: 20px; line-height: 1; background: #f2f8f7; border: 1px solid #d9e9e7; border-radius: 7px; cursor: pointer; }
 .account-dialog-message { display: block; min-height: 18px; margin-top: 12px; color: var(--theme-danger); font-size: 12px; }
+.account-dialog-message.success { color: #047857; }
+.account-dialog-message.error { color: var(--theme-danger); }
 .account-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .account-dialog-actions button { padding: 8px 12px; color: var(--theme-ink); background: #fff; border: 1px solid #d9e9e7; border-radius: 7px; cursor: pointer; }
 .account-dialog-actions .primary { color: #fff; background: var(--theme-teal); border-color: var(--theme-teal); }
 
 @media (max-width: 600px) {
   .account-menu { top: 54px; right: 12px; }
+}
+
+/* Compact shared headers without hiding navigation on tablets and phones. */
+@media (max-width: 900px) {
+  .topbar {
+    min-height: 64px;
+    height: auto;
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .brand small { display: none; }
+
+  .top-nav,
+  .top-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .top-nav .nav-item,
+  .top-actions .nav-item {
+    padding: 5px 0;
+    font-size: 14px;
+  }
+
+  .upload-dataset {
+    min-width: 86px;
+    width: auto;
+    height: 34px;
+    margin-right: 0;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  .top-nav .profile-avatar-button,
+  .top-actions .profile-avatar-button {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+  }
+
+  .app { height: 100dvh; }
+  .workspace { height: calc(100dvh - 112px); }
+  .account-menu { top: 112px; right: 12px; }
+}
+
+@media (max-width: 380px) {
+  .topbar { padding-right: 12px; padding-left: 12px; }
+  .top-nav,
+  .top-actions { gap: 9px; }
+  .top-nav .nav-item,
+  .top-actions .nav-item { font-size: 13px; }
 }

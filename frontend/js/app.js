@@ -360,28 +360,7 @@ document.getElementById("zoom-out")?.addEventListener("click", () => {
     map.zoomOut();
 });
 
-// 1. Basemap Layer Toggle Button (#basemap-toggle)
-if (basemapToggle) {
-    basemapToggle.addEventListener("click", () => {
-        const isCurrentlyStreet = activeBasemap === basemaps.street;
-        const newBasemapKey = isCurrentlyStreet ? 'satellite' : 'street';
-        
-        map.removeLayer(activeBasemap);
-        activeBasemap = basemaps[newBasemapKey].addTo(map);
-        
-        if (basemapSelect) basemapSelect.value = newBasemapKey;
-        
-        const isSatellite = newBasemapKey === 'satellite';
-        basemapToggle.classList.toggle('active', isSatellite);
-        basemapToggle.setAttribute('aria-pressed', String(isSatellite));
-        basemapToggle.title = isSatellite ? 'Switch to street map' : 'Switch to satellite map';
-        basemapToggle.setAttribute('aria-label', basemapToggle.title);
-        
-        showFeedback(`Switched to ${isSatellite ? 'Satellite' : 'Street'} basemap.`);
-    });
-}
-
-// 2. Reset View / Locate Ethiopia Button (#reset-view)
+// 1. Reset View / Locate Ethiopia Button (#reset-view)
 document.getElementById("reset-view")?.addEventListener("click", () => {
     map.setView([9.03, 38.74], 6);
     map.closePopup();
@@ -411,7 +390,8 @@ function isAppFullscreen() {
 function updateFullscreenControl() {
     const isFS = isAppFullscreen();
     if (fullscreenMapButton) {
-        fullscreenMapButton.classList.toggle('active', isFS);
+        // Fullscreen changes the icon only; keep the control's standard color.
+        fullscreenMapButton.classList.remove('active');
         fullscreenMapButton.setAttribute('aria-pressed', String(isFS));
         fullscreenMapButton.setAttribute('aria-label', isFS ? 'Exit fullscreen map' : 'Enter fullscreen map');
         fullscreenMapButton.title = isFS ? 'Exit fullscreen map' : 'Enter fullscreen map';
