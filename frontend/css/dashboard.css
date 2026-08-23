@@ -126,7 +126,7 @@ html, body {
 
 .dash-main > .tile-grid {
   grid-column: 1;
-  grid-row: 2 / span 3;
+  grid-row: 2 / span 10;
   grid-template-columns: 1fr;
   margin-top: 8px;
 }
@@ -134,8 +134,16 @@ html, body {
 .dash-main > .dash-intro,
 .dash-main > .dashboard-welcome,
 .dash-main > .stat-grid,
-.dash-main > .recent-section {
+.dash-main > .recent-section,
+.dash-main > .dash-content,
+.dash-main > .mgmt-content {
   grid-column: 2;
+  min-width: 0;
+}
+
+.dash-main > .dash-content,
+.dash-main > .mgmt-content {
+  grid-row: 1 / span 10;
 }
 
 .dash-main > .dash-intro {
@@ -210,11 +218,7 @@ html, body {
 .dash-main.sidebar-collapsed > .tile-grid .tile p,
 .dash-main.sidebar-collapsed > .tile-grid .tile-arrow { display: none; }
 
-/* Activity log uses the full page width; only its entry table scrolls. */
-.activity-page {
-  display: block;
-}
-
+/* Activity log table scrolling */
 .activity-page .table-wrap {
   max-height: min(60vh, 620px);
   overflow: auto;
@@ -336,25 +340,32 @@ h1 {
 }
 
 .dash-main > .tile-grid .tile {
-  min-height: 0;
-  padding: 17px;
+  min-height: 52px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
 }
 
 .dash-main > .tile-grid .tile-icon-badge {
-  width: 38px;
-  height: 38px;
-  margin-bottom: 2px;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
 .dash-main > .tile-grid .tile h2 {
-  padding-right: 24px;
-  font-size: 15px;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .dash-main > .tile-grid .tile p {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
+  display: none;
 }
 
 .tile {
@@ -408,6 +419,33 @@ h1 {
   background: #fff8eb;
   color: #b57900;
   border: 1px solid #fae8c8;
+}
+
+.icon-purple {
+  background: #f3f0ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+}
+
+/* Active Tile State */
+.tile.active,
+.dash-main > .tile-grid .tile.active {
+  border-color: var(--teal);
+  background: #f4faf9;
+  box-shadow: 0 0 0 2px var(--teal), 0 8px 24px rgba(0, 167, 141, 0.15);
+}
+
+.tile.active .tile-arrow,
+.dash-main > .tile-grid .tile.active .tile-arrow {
+  opacity: 1;
+  color: var(--teal);
+  transform: translateX(3px);
+}
+
+.dash-main.sidebar-collapsed > .tile-grid .tile.active {
+  border-color: var(--teal);
+  background: var(--light-teal);
+  box-shadow: 0 0 0 2px var(--teal);
 }
 
 .tile-arrow {

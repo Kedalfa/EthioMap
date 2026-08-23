@@ -18,24 +18,6 @@ const map = L.map('map', {
     doubleClickZoom: true
 }).setView([9.03, 38.74], 6);
 
-const HOME_COORDINATES = [8.9630278, 38.7687222];
-const homeIcon = L.divIcon({
-    className: 'home-marker-icon',
-    html: `<div style="width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#087d6d;border:3px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="transform:rotate(45deg);fill:none;stroke:#ffffff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg></div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-    popupAnchor: [0, -36]
-});
-const homeMarker = L.marker(HOME_COORDINATES, { icon: homeIcon })
-    .addTo(map)
-    .bindPopup('<strong>Home</strong><br>8°57\'46.9"N, 38°46\'07.4"E');
-
-homeMarker.on('click', (event) => {
-    L.DomEvent.stopPropagation(event);
-    homeMarker.closePopup();
-    showLocationSidebar({ title: 'Home', coordinates: `${HOME_COORDINATES[0].toFixed(5)}, ${HOME_COORDINATES[1].toFixed(5)}`, details: 'Saved place' });
-});
-
 // Keep basemaps in their own layer so switching imagery never removes data,
 // measurement, or search-result overlays already drawn on the map.
 const basemapSelect = document.getElementById('basemap-select');
@@ -158,10 +140,7 @@ function showOnlyDatasetLayer(location) {
 }
 
 // Dataset names loaded from the datasets table are searchable.
-// Home: 8°57'46.9"N, 38°46'07.4"E converted to decimal degrees.
-const databaseLocations = [
-    { name: 'Home', type: 'Saved place', coordinates: HOME_COORDINATES }
-];
+const databaseLocations = [];
 
 // Remove file extensions only from names displayed in search suggestions.
 function datasetDisplayName(name) {
@@ -190,14 +169,6 @@ function showSearchResults(matches) {
 }
 
 async function selectLocation(location) {
-    if (location.name === 'Home') {
-        showAllDatasetLayers();
-        map.setView(HOME_COORDINATES, 19);
-        homeMarker.openPopup();
-        searchInput.value = 'Home';
-        searchResults.hidden = true;
-        return;
-    }
     if (location.datasetId) {
         let savedLayer = savedDatasetLayers.get(location.datasetId);
         if (!savedLayer) {
