@@ -15,16 +15,22 @@
       <span><strong>EthioMap</strong><small>Map Information Subsystem</small></span>
     </a>
     <nav class="top-nav">
-      <a href="Ethiomap.html" class="nav-link">Map</a>
-      <a href="about.html" class="nav-link">About Us</a>
-      <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
-      <a href="profile.html" class="nav-link profile-nav" aria-label="Open profile" title="Profile"><svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path></svg></a>
+      <a href="Ethiomap.html" class="nav-link nav-item">Map</a>
+      <a href="about.html" class="nav-link nav-item">About Us</a>
+      <button class="profile-nav" type="button" aria-label="Open account menu"></button>
     </nav>
   </header>
   <main class="dash-main">
     <div class="dash-intro">
-      <div id="dashboard-eyebrow" class="eyebrow">Admin Dashboard</div>
-      <p id="dashboard-description">Manage datasets, users, and system activity from here.</p>
+      <div class="sidebar-heading">
+        <div>
+          <div id="dashboard-eyebrow" class="eyebrow">Admin Dashboard</div>
+          <p id="dashboard-description">Manage datasets, users, and system activity from here.</p>
+        </div>
+        <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-label="Collapse dashboard navigation" title="Collapse navigation" onclick="toggleDashboardSidebar()">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7"></path></svg>
+        </button>
+      </div>
     </div>
     <h1 id="welcome-title" class="dashboard-welcome">Welcome back</h1>
     <!-- Stat cards -->
@@ -44,7 +50,7 @@
     </div>
     <!-- Navigation tiles -->
     <div class="tile-grid">
-      <a class="tile" href="dataset-management.html">
+      <a class="tile" href="dataset-management.html" aria-label="Dataset Management" title="Dataset Management">
         <div class="tile-icon-badge icon-teal">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
@@ -59,7 +65,7 @@
           <polyline points="12 5 19 12 12 19"></polyline>
         </svg>
       </a>
-      <a class="tile admin-only" href="user-management.html">
+      <a class="tile admin-only" href="user-management.html" aria-label="User Management" title="User Management">
         <div class="tile-icon-badge icon-blue">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -75,7 +81,7 @@
           <polyline points="12 5 19 12 12 19"></polyline>
         </svg>
       </a>
-      <a class="tile admin-only" href="activity-log.html">
+      <a class="tile admin-only" href="activity-log.html" aria-label="Activity Log" title="Activity Log">
         <div class="tile-icon-badge icon-amber">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -99,11 +105,20 @@
       <div id="recent-list" class="recent-list"><div class="empty-state">Loading…</div></div>
     </section>
   </main>
+  <script>
+    function toggleDashboardSidebar() {
+      const dashboard = document.querySelector('.dash-main');
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      const isCollapsed = dashboard.classList.toggle('sidebar-collapsed');
+      sidebarToggle.setAttribute('aria-expanded', String(!isCollapsed));
+      sidebarToggle.setAttribute('aria-label', isCollapsed ? 'Expand dashboard navigation' : 'Collapse dashboard navigation');
+      sidebarToggle.title = isCollapsed ? 'Expand navigation' : 'Collapse navigation';
+    }
+  </script>
   <script type="module">
-    import { requireAuth, logout } from './js/auth.js';
+    import { requireAuth } from './js/auth.js';
     const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:4000';
 
-    document.getElementById('logout-btn').addEventListener('click', logout);
 
     const user = await requireAuth();
     if (!user) throw new Error('Not authenticated');
@@ -153,5 +168,6 @@
       document.getElementById('stat-actions').closest('.stat-card').style.display = 'none';
     }
   </script>
+  <script type="module" src="js/profile-menu.js"></script>
 </body>
 </html>

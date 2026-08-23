@@ -20,8 +20,8 @@
     <header class="topbar">
       <div class="brand"><div class="brand-mark">E</div><div><strong>EthioMap</strong><small>Map Information Subsystem</small></div></div>
       <div class="top-actions" id="top-nav-actions">
-        <a class="nav-link" href="Ethiomap.html">Map</a>
-        <a class="nav-link" href="about.html">About Us</a>
+        <a class="nav-link nav-item" href="Ethiomap.html">Map</a>
+        <a class="nav-link nav-item" href="about.html">About Us</a>
         <a class="upload-dataset" href="login.html" id="nav-login-btn">Login</a>
       </div> 
     </header>
@@ -94,7 +94,8 @@
   <script src="js/app.js?v=20260809-2"></script>
   <!-- Dynamic Auth Navbar Updater -->
   <script type="module">
-    import { getMe, logout } from './js/auth.js';
+    import { getMe } from './js/auth.js';
+    import { initialiseProfileMenu } from './js/profile-menu.js';
 
     const topNavActions = document.getElementById('top-nav-actions');
 
@@ -111,31 +112,19 @@
           dashLink.id = 'nav-dashboard-link';
           dashLink.className = 'nav-link';
           dashLink.href = 'dashboard.html';
-          dashLink.textContent = 'Dashboard';
+          dashLink.textContent = '← Dashboard';
           topNavActions.appendChild(dashLink);
-        }
-
-        // Add Sign out button if not present
-        if (!document.getElementById('logout-btn')) {
-          const logoutBtn = document.createElement('button');
-          logoutBtn.id = 'logout-btn';
-          logoutBtn.className = 'logout-btn';
-          logoutBtn.type = 'button';
-          logoutBtn.textContent = 'Sign out';
-          logoutBtn.addEventListener('click', logout);
-          topNavActions.appendChild(logoutBtn);
         }
 
         // Add Profile link button with icon if not present
         if (!document.getElementById('nav-profile-link')) {
-          const profileLink = document.createElement('a');
+          const profileLink = document.createElement('button');
           profileLink.id = 'nav-profile-link';
-          profileLink.className = 'nav-link profile-nav';
-          profileLink.href = 'profile.html';
-          profileLink.title = `Profile (${user.username})`;
+          profileLink.className = 'profile-nav';
+          profileLink.type = 'button';
           profileLink.setAttribute('aria-label', 'Open profile');
-          profileLink.innerHTML = `<svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path></svg>`;
           topNavActions.appendChild(profileLink);
+          initialiseProfileMenu();
         }
       }
     }

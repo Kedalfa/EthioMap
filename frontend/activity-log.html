@@ -12,11 +12,10 @@
   <header class="topbar">
     <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
     <nav class="top-nav">
-      <a href="Ethiomap.html" class="nav-link">Map</a>
-      <a href="about.html" class="nav-link">About Us</a>
+      <a href="Ethiomap.html" class="nav-link nav-item">Map</a>
+      <a href="about.html" class="nav-link nav-item">About Us</a>
       <a href="dashboard.html" class="nav-link">← Dashboard</a>
-      <button id="logout-btn" class="logout-btn" type="button">Sign out</button>
-      <a href="profile.html" class="nav-link profile-nav" aria-label="Open profile" title="Profile"><svg class="profile-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.8-3.4 3.1-5 7-5s6.2 1.6 7 5"></path></svg></a>
+      <button class="profile-nav" type="button" aria-label="Open account menu"></button>
     </nav>
   </header>
   <main class="dash-main activity-page">
@@ -52,9 +51,8 @@
   </main>
 
   <script type="module">
-    import { requireAdmin, logout, fetchWithAuth } from './js/auth.js';
+    import { requireAdmin, fetchWithAuth } from './js/auth.js';
 
-    document.getElementById('logout-btn').addEventListener('click', logout);
     const user = await requireAdmin();
     if (!user) throw new Error('Not admin');
 
@@ -108,5 +106,6 @@
 
     await loadLogs();
   </script>
+  <script type="module" src="js/profile-menu.js"></script>
 </body>
 </html>

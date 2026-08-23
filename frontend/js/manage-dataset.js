@@ -1,4 +1,4 @@
-import { requireAuth, logout, fetchWithAuth } from './auth.js';
+import { requireAuth, fetchWithAuth } from './auth.js';
 const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:4000';
 const datasetList = document.getElementById('dataset-list');
 const datasetCount = document.getElementById('dataset-count');
@@ -63,8 +63,5 @@ document.getElementById('upload-form').addEventListener('submit', async (event) 
 const currentUser = await requireAuth();
 if (!currentUser) throw new Error('Not authenticated');
 
-// Logout button (if present in the page header)
-const logoutBtn = document.getElementById('logout-btn');
-if (logoutBtn) logoutBtn.addEventListener('click', logout);
 
 loadDatasets();
