@@ -1,4 +1,10 @@
 import { requireAuth, fetchWithAuth } from './auth.js';
+
+// Auth guard — redirects to login if not signed in
+const currentUser = await requireAuth();
+if (!currentUser) throw new Error('Not authenticated');
+const isAdmin = currentUser.role === 'admin';
+
 const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:4000';
 const datasetList = document.getElementById('dataset-list');
 const datasetCount = document.getElementById('dataset-count');
@@ -24,7 +30,8 @@ function renderDatasets() {
     if (!visibleDatasets.length) { datasetList.innerHTML = `<div class="empty-state">${query ? 'No datasets match your search.' : 'No datasets have been uploaded yet.'}</div>`; return; }
     datasetList.innerHTML = visibleDatasets.map((dataset) => {
         const metadata = dataset.metadata || {};
-        return `<article class="dataset-card"><div class="dataset-card-head"><span class="layer-color"></span><h2>${escapeHtml(dataset.name || dataset.originalFilename)}</h2></div><p>${escapeHtml(metadata.description || 'Uploaded GeoJSON dataset')}</p><div class="dataset-meta"><div><span>Coordinate system</span><strong>${escapeHtml(metadata.coordinateReferenceSystem || 'EPSG:4326')}</strong></div><div><span>Owner</span><strong>${escapeHtml(metadata.owner || 'Not specified')}</strong></div><div><span>Source</span><strong>${escapeHtml(metadata.source || 'Not specified')}</strong></div><div><span>File</span><strong>${escapeHtml(dataset.originalFilename || 'Unknown')}</strong></div></div><div class="dataset-actions"><button type="button" data-edit="${dataset.id}">Edit</button><button type="button" class="remove" data-remove="${dataset.id}">Remove</button></div></article>`;
+        const removeButton = isAdmin ? `<button type="button" class="remove" data-remove="${dataset.id}">Remove</button>` : '';
+        return `<article class="dataset-card"><div class="dataset-card-head"><span class="layer-color"></span><h2>${escapeHtml(dataset.name || dataset.originalFilename)}</h2></div><p>${escapeHtml(metadata.description || 'Uploaded GeoJSON dataset')}</p><div class="dataset-meta"><div><span>Coordinate system</span><strong>${escapeHtml(metadata.coordinateReferenceSystem || 'EPSG:4326')}</strong></div><div><span>Owner</span><strong>${escapeHtml(metadata.owner || 'Not specified')}</strong></div><div><span>Source</span><strong>${escapeHtml(metadata.source || 'Not specified')}</strong></div><div><span>File</span><strong>${escapeHtml(dataset.originalFilename || 'Unknown')}</strong></div></div><div class="dataset-actions"><button type="button" data-edit="${dataset.id}">Edit</button>${removeButton}</div></article>`;
     }).join('');
 }
 
@@ -46,7 +53,16 @@ function metadata(prefix) { return { description: document.getElementById(`${pre
 datasetList.addEventListener('click', async (event) => {
     const editId = event.target.dataset.edit; const removeId = event.target.dataset.remove;
     if (editId) openEditor(datasets.find((dataset) => dataset.id === editId));
-    if (removeId) { const dataset = datasets.find((item) => item.id === removeId); if (!dataset || !window.confirm(`Remove dataset "${dataset.name}"?`)) return; const response = await api(`/api/datasets/${removeId}`, { method: 'DELETE' }); if (!response.ok) { showFeedback('Dataset removal failed.'); return; } datasets = datasets.filter((item) => item.id !== removeId); renderDatasets(); showFeedback('Dataset removed.'); }
+    if (removeId) {
+        if (!isAdmin) return;
+        const dataset = datasets.find((item) => item.id === removeId);
+        if (!dataset || !window.confirm(`Remove dataset "${dataset.name}"?`)) return;
+        const response = await api(`/api/datasets/${removeId}`, { method: 'DELETE' });
+        if (!response.ok) { showFeedback('Dataset removal failed.'); return; }
+        datasets = datasets.filter((item) => item.id !== removeId);
+        renderDatasets();
+        showFeedback('Dataset removed.');
+    }
 });
 datasetSearch.addEventListener('input', renderDatasets);
 document.getElementById('edit-cancel').addEventListener('click', () => editDialog.close());
@@ -59,9 +75,5 @@ document.getElementById('upload-form').addEventListener('submit', async (event) 
     event.preventDefault(); const file = document.getElementById('geojson-file').files[0]; if (!file) return;
     try { const geojson = JSON.parse(await file.text()); if (!['Feature', 'FeatureCollection'].includes(geojson.type)) throw new Error('The file must be a GeoJSON Feature or FeatureCollection.'); const response = await api('/api/datasets', { method: 'POST', body: JSON.stringify({ filename: file.name, name: document.getElementById('upload-name').value.trim() || file.name, geojson, metadata: metadata('upload') }) }); const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Dataset upload failed.'); uploadDialog.close(); document.getElementById('upload-form').reset(); document.getElementById('upload-crs').value = 'EPSG:4326'; await loadDatasets(); showFeedback('Dataset uploaded successfully.'); } catch (error) { showFeedback(error.message); }
 });
-// Auth guard — redirects to login if not signed in
-const currentUser = await requireAuth();
-if (!currentUser) throw new Error('Not authenticated');
-
 
 loadDatasets();

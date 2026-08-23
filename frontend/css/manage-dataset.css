@@ -34,8 +34,31 @@ h1 { margin:6px 0 6px; font-size:32px; }
 .dataset-actions .remove { color:#b42318; border-color:#f0c9c5; }
 .empty-state { grid-column:1 / -1; padding:50px 20px; color:var(--muted); text-align:center; background:white; border:1px dashed #cbdcda; border-radius:12px; }
 .feedback { margin:-10px 0 18px; padding:10px 14px; color:#087d6d; font-size:12px; background:#e6f7f3; border-radius:7px; }
-dialog { width:min(440px,calc(100% - 32px)); padding:0; border:0; border-radius:12px; box-shadow:0 20px 60px #05203355; }
-dialog::backdrop { background:#071b2d88; }
+dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  width: min(440px, calc(100vw - 32px)) !important;
+  max-width: 440px !important;
+  max-height: calc(100vh - 40px) !important;
+  overflow-y: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 24px 70px rgba(2, 16, 22, 0.4) !important;
+  z-index: 99999 !important;
+  background: #ffffff !important;
+  color: var(--ink, #071b2d) !important;
+}
+dialog::backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(7, 27, 45, 0.65) !important;
+  backdrop-filter: blur(3px) !important;
+  z-index: 99998 !important;
+}
 dialog form { padding:22px; }
 dialog h2 { margin:0 0 16px; font-size:20px; }
 label { display:block; margin-top:10px; color:#526977; font-size:11px; font-weight:700; }

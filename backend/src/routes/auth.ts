@@ -43,7 +43,7 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `SELECT id, username, email, password_hash, role, is_active, failed_attempts, locked_until, avatar_url
-       FROM users WHERE username = $1`,
+       FROM users WHERE LOWER(username) = LOWER($1)`,
       [String(username).trim()]
     );
 
