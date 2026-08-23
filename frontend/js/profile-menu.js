@@ -152,34 +152,6 @@ function createAccountDialog(initialUser) {
     </form>`;
 
   document.body.appendChild(dialog);
-<<<<<<< Updated upstream
-  dialog.querySelectorAll('[data-close-dialog], .account-dialog-close').forEach((button) => button.addEventListener('click', () => dialog.close()));
-  dialog.querySelector('[data-account-form="edit"]').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const message = form.querySelector('output');
-    const data = Object.fromEntries(new FormData(form));
-    const response = await fetchWithAuth('/api/auth/profile', { method: 'POST', body: JSON.stringify(data) });
-    const result = await response.json();
-    if (!response.ok) { message.className = 'account-dialog-message error'; message.textContent = result.error || 'Unable to update your profile.'; return; }
-    setToken(result.token);
-    message.className = 'account-dialog-message success';
-    message.textContent = 'Profile updated successfully. Taking you to the dashboard…';
-    window.setTimeout(() => window.location.assign('dashboard.html'), 1200);
-  });
-  dialog.querySelector('[data-account-form="password"]').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const message = form.querySelector('output');
-    const data = Object.fromEntries(new FormData(form));
-    if (data.newPassword !== data.confirmPassword) { message.className = 'account-dialog-message error'; message.textContent = 'New password and confirmation do not match.'; return; }
-    const response = await fetchWithAuth('/api/auth/change-password', { method: 'PUT', body: JSON.stringify(data) });
-    const result = await response.json();
-    if (!response.ok) { message.className = 'account-dialog-message error'; message.textContent = result.error || 'Unable to change your password.'; return; }
-    message.className = 'account-dialog-message success';
-    message.textContent = 'Password changed successfully. Taking you to the dashboard…';
-    window.setTimeout(() => window.location.assign('dashboard.html'), 1200);
-=======
 
   const editForm = dialog.querySelector('[data-account-form="edit"]');
   const pwdForm = dialog.querySelector('[data-account-form="password"]');
@@ -288,7 +260,6 @@ function createAccountDialog(initialUser) {
       showMessage(editMessage, 'Could not read selected image file.');
     };
     reader.readAsDataURL(file);
->>>>>>> Stashed changes
   });
 
   // Cancel preview
