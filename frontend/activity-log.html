@@ -19,35 +19,37 @@
     </nav>
   </header>
   <main class="dash-main activity-page">
-    <div class="page-heading">
-      <div><div class="eyebrow">Admin</div><h1>Activity Log</h1><p>Full history of every action performed in the system.</p></div>
-      <span id="log-count" class="tag">Loading…</span>
+    <div class="dash-content">
+      <div class="page-heading">
+        <div><div class="eyebrow">Admin</div><h1>Activity Log</h1><p>Full history of every action performed in the system.</p></div>
+        <span id="log-count" class="tag">Loading…</span>
+      </div>
+      <!-- Filters -->
+      <div class="filter-row">
+        <input id="filter-username" type="search" placeholder="Filter by username…" autocomplete="off">
+        <select id="filter-action">
+          <option value="">All actions</option>
+          <option value="login">Login</option>
+          <option value="logout">Logout</option>
+          <option value="upload">Upload</option>
+          <option value="edit">Edit</option>
+          <option value="delete">Delete</option>
+          <option value="create_user">Create user</option>
+          <option value="deactivate_user">Deactivate user</option>
+          <option value="activate_user">Activate user</option>
+          <option value="account_locked">Account locked</option>
+        </select>
+        <button id="filter-btn" class="primary-action" type="button">Filter</button>
+      </div>
+      <section class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>IP</th></tr></thead>
+          <tbody id="log-tbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </section>
+      <!-- Pagination -->
+      <div class="pagination" id="pagination"></div>
     </div>
-    <!-- Filters -->
-    <div class="filter-row">
-      <input id="filter-username" type="search" placeholder="Filter by username…" autocomplete="off">
-      <select id="filter-action">
-        <option value="">All actions</option>
-        <option value="login">Login</option>
-        <option value="logout">Logout</option>
-        <option value="upload">Upload</option>
-        <option value="edit">Edit</option>
-        <option value="delete">Delete</option>
-        <option value="create_user">Create user</option>
-        <option value="deactivate_user">Deactivate user</option>
-        <option value="activate_user">Activate user</option>
-        <option value="account_locked">Account locked</option>
-      </select>
-      <button id="filter-btn" class="primary-action" type="button">Filter</button>
-    </div>
-    <section class="table-wrap">
-      <table class="data-table">
-        <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>IP</th></tr></thead>
-        <tbody id="log-tbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
-      </table>
-    </section>
-    <!-- Pagination -->
-    <div class="pagination" id="pagination"></div>
   </main>
 
   <script type="module">
@@ -106,6 +108,7 @@
 
     await loadLogs();
   </script>
+  <script type="module" src="js/sidebar.js"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
 </html>

@@ -19,20 +19,22 @@
     </nav>
   </header>
   <main class="dash-main">
-    <div class="page-heading">
-      <div><div class="eyebrow">Admin</div><h1>User Management</h1><p>Create and manage staff accounts.</p></div>
-      <div class="page-actions">
-        <span id="user-count" class="tag">Loading…</span>
-        <button id="create-user-btn" class="primary-action" type="button">Create user</button>
+    <div class="dash-content">
+      <div class="page-heading">
+        <div><div class="eyebrow">Admin</div><h1>User Management</h1><p>Create and manage staff accounts.</p></div>
+        <div class="page-actions">
+          <span id="user-count" class="tag">Loading…</span>
+          <button id="create-user-btn" class="primary-action" type="button">Create user</button>
+        </div>
       </div>
+      <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+      <section id="user-table-wrap" class="table-wrap">
+        <table class="data-table" id="user-table">
+          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="user-tbody"><tr><td colspan="6" class="empty-state">Loading users…</td></tr></tbody>
+        </table>
+      </section>
     </div>
-    <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-    <section id="user-table-wrap" class="table-wrap">
-      <table class="data-table" id="user-table">
-        <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-        <tbody id="user-tbody"><tr><td colspan="6" class="empty-state">Loading users…</td></tr></tbody>
-      </table>
-    </section>
   </main>
 
   <!-- Create user dialog (Centered Hover Card Modal) -->
@@ -164,6 +166,7 @@
 
     await loadUsers();
   </script>
+  <script type="module" src="js/sidebar.js"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
 </html>
