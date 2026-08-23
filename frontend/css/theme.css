@@ -13,14 +13,21 @@
   --theme-radius: 10px;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 body {
   color: var(--theme-ink);
   font-family: "DM Sans", sans-serif;
 }
 
-h1, h2, h3, .brand strong {
+h1,
+h2,
+h3,
+.brand strong {
   font-family: "Space Grotesk", sans-serif;
 }
 
@@ -42,9 +49,26 @@ h1, h2, h3, .brand strong {
   text-decoration: none;
 }
 
-.brand-mark { background-image: url(../flag.jpg); background-size: contain; background-repeat: no-repeat; background-position: center; width:50px; height:50px; display:grid; place-items:center; color:white; font:21px Georgia,serif; border-radius:10px 10px 10px 2px; transform:rotate(-8deg); }
+.brand-mark {
+  background-image: url(../flag.jpg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font: 21px Georgia, serif;
+  border-radius: 10px 10px 10px 2px;
+  transform: rotate(-8deg);
+}
 
-.brand strong { display: block; font-size: 18px; }
+.brand strong {
+  display: block;
+  font-size: 18px;
+}
+
 .brand small {
   display: block;
   color: #9fb1bd;
@@ -60,7 +84,8 @@ h1, h2, h3, .brand strong {
   margin-left: auto;
 }
 
-.nav-link, .back-link {
+.nav-link,
+.back-link {
   padding: 8px 14px;
   color: #8ce4d1;
   font-size: 12px;
@@ -70,7 +95,8 @@ h1, h2, h3, .brand strong {
   transition: all .2s ease;
 }
 
-.nav-link:hover, .back-link:hover {
+.nav-link:hover,
+.back-link:hover {
   color: white;
   background: #163249;
 }
@@ -79,7 +105,7 @@ h1, h2, h3, .brand strong {
   display: inline-grid;
   width: 36px;
   height: 36px;
-  place-items:center;
+  place-items: center;
   padding: 0;
 }
 
@@ -109,32 +135,44 @@ h1, h2, h3, .brand strong {
   background: #541d23;
 }
 
-.primary-action, .dialog-actions .primary {
+.primary-action,
+.dialog-actions .primary {
   background: var(--theme-teal);
   border-color: var(--theme-teal);
 }
 
-.primary-action:hover, .dialog-actions .primary:hover {
+.primary-action:hover,
+.dialog-actions .primary:hover {
   background: var(--theme-dark-teal);
   border-color: var(--theme-dark-teal);
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: "DM Sans", sans-serif;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--theme-teal);
   outline: none;
   box-shadow: 0 0 0 3px rgba(0, 167, 141, .2);
 }
 
 @media (max-width: 600px) {
-  .topbar { padding: 0 20px; }
-  .brand small { display: none; }
+  .topbar {
+    padding: 0 20px;
+  }
+
+  .brand small {
+    display: none;
+  }
 }
-.top-nav a{
-  align-self:flex-end;
+
+.top-nav a {
+  align-self: flex-end;
 }
 
 /* Text navigation keeps the header light and makes the avatar the final item. */
@@ -155,6 +193,7 @@ input:focus, select:focus, textarea:focus {
   background: transparent;
 }
 
+<<<<<<< Updated upstream
 /* Highlight the navigation item for the page currently being viewed. */
 .top-nav .nav-item.active,
 .top-actions .nav-item.active {
@@ -166,6 +205,15 @@ input:focus, select:focus, textarea:focus {
 
 .top-nav { gap: 24px; }
 .top-nav .profile-avatar-button { margin-left: 4px; }
+=======
+.top-nav {
+  gap: 24px;
+}
+
+.top-nav .profile-avatar-button {
+  margin-left: 4px;
+}
+>>>>>>> Stashed changes
 
 /* Use the same Login control across the Map and About Us headers. */
 .upload-dataset {
@@ -185,8 +233,20 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Shared dashboard typography for every regular application page. */
-body, button, input, select, textarea { font-family: "DM Sans", sans-serif; }
-h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "DM Sans", sans-serif;
+}
+
+h1,
+h2,
+h3,
+.brand strong {
+  font-family: "Space Grotesk", sans-serif;
+}
 
 .profile-avatar-button {
   display: inline-grid;
@@ -197,14 +257,14 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
   color: #fff;
   font: 600 15px "DM Sans", sans-serif;
   background: #a37a70;
-  border: 2px solid rgba(255,255,255,.16);
+  border: 2px solid rgba(255, 255, 255, .16);
   border-radius: 50%;
   cursor: pointer;
   margin-left: auto;
   transition: transform .2s ease, box-shadow .2s ease;
 }
 
-.profile-avatar-button > span {
+.profile-avatar-button>span {
   display: flex;
   width: 100%;
   height: 100%;
@@ -212,6 +272,15 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
   justify-content: center;
   line-height: 1;
   transform: translateY(-1px);
+}
+
+.profile-avatar-button img,
+.account-menu-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .profile-avatar-button:hover,
@@ -231,7 +300,7 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
   padding: 0;
   color: #fff;
   background: #a37a70;
-  border: 2px solid rgba(255,255,255,.16);
+  border: 2px solid rgba(255, 255, 255, .16);
   border-radius: 50%;
 }
 
@@ -277,19 +346,13 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
   border-radius: 50%;
 }
 
-.account-menu-summary > div strong,
-.account-menu-summary > div span,
-.account-menu-summary > div em { display: block; }
-.account-menu-summary > div strong { font-size: 15px; }
-.account-menu-summary div > span { margin-top: 3px; color: #c8d9d7; font-size: 12px; overflow-wrap: anywhere; }
-.account-menu-summary em { width: fit-content; margin-top: 8px; padding: 3px 7px; color: #9ee5d5; font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; background: #143f3a; border-radius: 20px; }
-.account-menu-actions { padding: 4px 8px 10px; border-top: 1px solid #31504d; }
-.account-menu-note { padding: 10px; color: #aac1bf; font-size: 12px; }
-.account-menu-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 10px; color: #edf7f6; font: 14px "DM Sans", sans-serif; text-align: left; text-decoration: none; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
-.account-menu-item:hover { background: #1d3735; }
-.account-menu-item svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
-.account-menu-signout { color: #ffbec3; }
+.account-menu-summary>div strong,
+.account-menu-summary>div span,
+.account-menu-summary>div em {
+  display: block;
+}
 
+<<<<<<< Updated upstream
 .account-dialog { width: min(420px, calc(100vw - 32px)); padding: 0; color: var(--theme-ink); border: 0; border-radius: 14px; box-shadow: 0 20px 60px rgba(2, 16, 22, .35); }
 .account-dialog::backdrop { background: rgba(7, 27, 45, .58); }
 .account-dialog-form { padding: 22px; }
@@ -305,11 +368,367 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
 .account-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .account-dialog-actions button { padding: 8px 12px; color: var(--theme-ink); background: #fff; border: 1px solid #d9e9e7; border-radius: 7px; cursor: pointer; }
 .account-dialog-actions .primary { color: #fff; background: var(--theme-teal); border-color: var(--theme-teal); }
-
-@media (max-width: 600px) {
-  .account-menu { top: 54px; right: 12px; }
+=======
+.account-menu-summary>div strong {
+  font-size: 15px;
 }
 
+.account-menu-summary div>span {
+  margin-top: 3px;
+  color: #c8d9d7;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.account-menu-summary em {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 3px 7px;
+  color: #9ee5d5;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  background: #143f3a;
+  border-radius: 20px;
+}
+
+.account-menu-actions {
+  padding: 4px 8px 10px;
+  border-top: 1px solid #31504d;
+}
+
+.account-menu-note {
+  padding: 10px;
+  color: #aac1bf;
+  font-size: 12px;
+}
+
+.account-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 10px;
+  color: #edf7f6;
+  font: 14px "DM Sans", sans-serif;
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.account-menu-item:hover {
+  background: #1d3735;
+}
+
+.account-menu-item svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.account-menu-signout {
+  color: #ffbec3;
+}
+
+.account-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  width: min(440px, calc(100vw - 32px)) !important;
+  max-width: 440px !important;
+  max-height: calc(100vh - 40px) !important;
+  overflow-y: auto !important;
+  padding: 0 !important;
+  color: var(--theme-ink, #0f2c3d) !important;
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 24px 70px rgba(2, 16, 22, 0.4) !important;
+  z-index: 99999 !important;
+}
+
+.account-dialog::backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(7, 27, 45, 0.65) !important;
+  backdrop-filter: blur(3px) !important;
+  z-index: 99998 !important;
+}
+
+.account-dialog-form {
+  padding: 22px;
+}
+
+.account-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-dialog h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--theme-ink, #0f2c3d);
+}
+
+.account-dialog p {
+  margin: 8px 0 16px;
+  color: var(--theme-muted, #526977);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Modal Avatar Section */
+.dialog-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px 0 14px;
+  padding: 12px 14px;
+  background: #f4faf9;
+  border: 1px solid #d9e9e7;
+  border-radius: 10px;
+}
+
+.dialog-avatar-wrapper {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.dialog-avatar-preview {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--theme-teal, #00a78d), #007a67);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 20px "Space Grotesk", sans-serif;
+  overflow: hidden;
+  border: 2px solid #d9e9e7;
+  box-shadow: 0 2px 6px rgba(0, 167, 141, 0.2);
+}
+
+.dialog-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dialog-avatar-edit-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #d9e9e7;
+  color: var(--theme-teal, #00a78d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.dialog-avatar-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.dialog-avatar-meta strong {
+  display: block;
+  font-size: 13px;
+  color: var(--theme-ink, #0f2c3d);
+}
+
+.dialog-avatar-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--theme-muted, #526977);
+  margin-top: 2px;
+}
+
+.dialog-avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.dialog-avatar-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.dialog-avatar-btn.change {
+  color: var(--theme-teal, #00a78d);
+}
+
+.dialog-avatar-btn.remove {
+  color: #e53e3e;
+}
+
+.dialog-avatar-btn.cancel-preview {
+  color: var(--theme-muted, #526977);
+}
+
+.account-dialog-role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.account-dialog-role-badge.admin {
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+}
+
+.account-dialog-role-badge.user {
+  background: #e6f7f4;
+  color: #007a67;
+  border: 1px solid #a3e3d8;
+}
+
+.account-dialog label {
+  display: block;
+  margin-top: 12px;
+  color: #526977;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.account-dialog input {
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px 10px;
+  color: var(--theme-ink, #0f2c3d);
+  background: #ffffff;
+  border: 1px solid #d9e9e7;
+  border-radius: 7px;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+
+.account-dialog input:focus {
+  outline: none;
+  border-color: var(--theme-teal, #00a78d);
+  box-shadow: 0 0 0 2px rgba(0, 167, 141, 0.2);
+}
+
+.account-dialog-close {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: #526977;
+  font-size: 20px;
+  line-height: 1;
+  background: #f2f8f7;
+  border: 1px solid #d9e9e7;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-dialog-close:hover {
+  background: #e5f1ef;
+  color: var(--theme-ink, #0f2c3d);
+}
+
+.account-dialog-message {
+  display: block;
+  min-height: 18px;
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.account-dialog-message.error {
+  color: #dc2626;
+}
+
+.account-dialog-message.success {
+  color: #047857;
+}
+
+.account-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.account-dialog-actions button {
+  padding: 8px 14px;
+  color: var(--theme-ink, #0f2c3d);
+  background: #fff;
+  border: 1px solid #d9e9e7;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.15s ease;
+}
+
+.account-dialog-actions button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.account-dialog-actions .primary {
+  color: #fff;
+  background: var(--theme-teal, #00a78d);
+  border-color: var(--theme-teal, #00a78d);
+}
+
+.account-dialog-actions .primary:hover:not(:disabled) {
+  background: #008f78;
+}
+
+.account-dialog-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+>>>>>>> Stashed changes
+
+@media (max-width: 600px) {
+  .account-menu {
+    top: 54px;
+    right: 12px;
+  }
+}
+
+<<<<<<< Updated upstream
 /* Compact shared headers without hiding navigation on tablets and phones. */
 @media (max-width: 900px) {
   .topbar {
@@ -370,3 +789,58 @@ h1, h2, h3, .brand strong { font-family: "Space Grotesk", sans-serif; }
   .top-nav .nav-item,
   .top-actions .nav-item { font-size: 13px; }
 }
+=======
+/* Reusable Password Visibility Toggle */
+.password-input-wrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.password-input-wrapper input {
+  width: 100% !important;
+  padding-right: 42px !important;
+  box-sizing: border-box !important;
+}
+
+.password-toggle-btn {
+  position: absolute !important;
+  right: 6px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  color: var(--theme-muted, #718096) !important;
+  cursor: pointer !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+  z-index: 5 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
+}
+
+.password-toggle-btn:hover {
+  color: var(--theme-teal, #00a78d) !important;
+  background: rgba(0, 167, 141, 0.1) !important;
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid var(--theme-teal, #00a78d) !important;
+  outline-offset: 1px !important;
+}
+
+.password-toggle-btn svg {
+  display: block !important;
+  pointer-events: none !important;
+}
+>>>>>>> Stashed changes

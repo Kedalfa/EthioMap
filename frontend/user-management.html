@@ -1,16 +1,21 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EthioMap | User Management</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/theme.css">
 </head>
+
 <body>
   <header class="topbar">
-    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
+    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map
+          Information Subsystem</small></span></a>
     <nav class="top-nav">
       <a href="Ethiomap.html" class="nav-link nav-item">Map</a>
       <a href="about.html" class="nav-link nav-item">About Us</a>
@@ -21,7 +26,11 @@
   <main class="dash-main">
     <div class="dash-content">
       <div class="page-heading">
-        <div><div class="eyebrow">Admin</div><h1>User Management</h1><p>Create and manage staff accounts.</p></div>
+        <div>
+          <div class="eyebrow">Admin</div>
+          <h1>User Management</h1>
+          <p>Create and manage staff accounts.</p>
+        </div>
         <div class="page-actions">
           <span id="user-count" class="tag">Loading…</span>
           <button id="create-user-btn" class="primary-action" type="button">Create user</button>
@@ -30,8 +39,21 @@
       <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
       <section id="user-table-wrap" class="table-wrap">
         <table class="data-table" id="user-table">
-          <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
-          <tbody id="user-tbody"><tr><td colspan="6" class="empty-state">Loading users…</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="user-tbody">
+            <tr>
+              <td colspan="6" class="empty-state">Loading users…</td>
+            </tr>
+          </tbody>
         </table>
       </section>
     </div>
@@ -49,7 +71,9 @@
         <label>Username<input id="new-username" required maxlength="100" autocomplete="off"></label>
         <label>Email<input id="new-email" type="email" required maxlength="255" autocomplete="off"></label>
         <label>Password
-          <input id="new-password" type="password" required maxlength="255" autocomplete="new-password">
+          <div class="password-input-wrapper">
+            <input id="new-password" type="password" required maxlength="255" autocomplete="new-password">
+          </div>
         </label>
         <label>Role
           <select id="new-role">
@@ -68,6 +92,7 @@
 
   <script type="module">
     import { requireAdmin, fetchWithAuth } from './js/auth.js';
+    import { attachPasswordToggle, resetPasswordToggle } from './js/password-toggle.js';
 
     const user = await requireAdmin();
     if (!user) throw new Error('Not admin');
@@ -75,6 +100,8 @@
     const tbody = document.getElementById('user-tbody');
     const feedback = document.getElementById('feedback');
     const createDialog = document.getElementById('create-dialog');
+    const newPasswordInput = document.getElementById('new-password');
+    attachPasswordToggle(newPasswordInput);
 
     function showFeedback(msg) { feedback.textContent = msg; feedback.hidden = false; setTimeout(() => feedback.hidden = true, 3500); }
     function escapeHtml(v = '') { const d = document.createElement('div'); d.textContent = v; return d.innerHTML; }
@@ -118,20 +145,20 @@
         const isActive = e.target.dataset.active === 'true';
         const res = await fetchWithAuth(`/api/users/${toggleId}`, { method: 'PUT', body: JSON.stringify({ is_active: !isActive }) });
         if (res.ok) { showFeedback(`User ${isActive ? 'deactivated' : 'activated'}.`); await loadUsers(); }
-        else showFeedback('Update failed.');
+        else showFeedback('Action failed.');
       }
       if (roleId) {
         const currentRole = e.target.dataset.role;
         const newRole = currentRole === 'admin' ? 'user' : 'admin';
-        const newRoleName = newRole === 'admin' ? 'Administrator' : 'Standard User';
         const res = await fetchWithAuth(`/api/users/${roleId}`, { method: 'PUT', body: JSON.stringify({ role: newRole }) });
-        if (res.ok) { showFeedback(`Role changed to ${newRoleName}.`); await loadUsers(); }
+        if (res.ok) { showFeedback(`Role updated to ${newRole}.`); await loadUsers(); }
         else showFeedback('Role update failed.');
       }
     });
 
     document.getElementById('create-user-btn').addEventListener('click', () => {
       document.getElementById('create-form').reset();
+      resetPasswordToggle(newPasswordInput);
       document.getElementById('create-error').hidden = true;
       createDialog.showModal();
     });
@@ -151,12 +178,14 @@
         return;
       }
 
-      const res = await fetchWithAuth('/api/users', { method: 'POST', body: JSON.stringify({
-        username: document.getElementById('new-username').value.trim(),
-        email: document.getElementById('new-email').value.trim(),
-        password: pwd,
-        role: document.getElementById('new-role').value,
-      }) });
+      const res = await fetchWithAuth('/api/users', {
+        method: 'POST', body: JSON.stringify({
+          username: document.getElementById('new-username').value.trim(),
+          email: document.getElementById('new-email').value.trim(),
+          password: pwd,
+          role: document.getElementById('new-role').value,
+        })
+      });
       const data = await res.json();
       if (!res.ok) { errBox.textContent = data.error || 'Failed to create user.'; errBox.hidden = false; return; }
       createDialog.close();
@@ -169,4 +198,5 @@
   <script type="module" src="js/sidebar.js"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
+
 </html>

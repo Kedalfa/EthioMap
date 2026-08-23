@@ -1,13 +1,17 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EthioMap | Account Profile</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/theme.css">
 </head>
+
 <body>
   <header class="topbar">
     <a class="brand" href="dashboard.html">
@@ -36,15 +40,39 @@
       <!-- Profile Card -->
       <section class="profile-card" aria-labelledby="profile-heading">
         <div class="profile-card-header">
-          <div class="profile-avatar-large" id="profile-avatar">E</div>
+          <div class="avatar-upload-wrapper">
+            <div class="profile-avatar-large" id="profile-avatar" title="Click to upload profile photo" role="button" tabindex="0" aria-label="Change profile photo">
+              <span id="profile-avatar-initial">E</span>
+              <img id="profile-avatar-img" src="" alt="Profile Photo" style="display: none;" />
+            </div>
+            <button type="button" id="avatar-edit-badge" class="avatar-edit-badge" title="Change photo" aria-label="Change profile photo">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            </button>
+            <input type="file" id="avatar-file-input" accept="image/jpeg,image/png,image/webp" style="display: none;" />
+          </div>
           <div class="profile-user-info">
             <h2 id="profile-display-name">Loading...</h2>
             <p id="profile-display-email">Loading email...</p>
-            <div style="margin-top: 4px;">
+            <div style="margin-top: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <span id="profile-role-badge" class="role-badge">Loading Role...</span>
+              <button id="remove-photo-btn" class="text-remove-btn" type="button" style="display: none;">Remove photo</button>
             </div>
           </div>
         </div>
+
+        <!-- Live Image Preview Action Bar -->
+        <div id="avatar-preview-container" class="avatar-preview-container" style="display: none;">
+          <div class="preview-info">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>Photo preview ready to save</span>
+          </div>
+          <div class="preview-buttons">
+            <button id="cancel-avatar-btn" class="btn-secondary btn-sm" type="button">Cancel</button>
+            <button id="save-avatar-btn" class="btn-primary btn-sm" type="button">Save Photo</button>
+          </div>
+        </div>
+
+        <div id="avatar-global-msg" class="msg-box" hidden></div>
       </section>
 
       <!-- Standalone Action Buttons directly on screen below card -->
@@ -62,9 +90,10 @@
         <h3>Edit Profile</h3>
         <button id="close-edit-profile-btn" class="modal-close-btn" type="button" aria-label="Close dialog">✕</button>
       </div>
-      
+
       <div style="padding: 16px 20px;">
-        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Update your account username and email address.</p>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Update your account username and email
+          address.</p>
 
         <div class="profile-form-group">
           <label>
@@ -94,22 +123,29 @@
         <h3>Change Password</h3>
         <button id="close-pwd-modal-btn" class="modal-close-btn" type="button" aria-label="Close dialog">✕</button>
       </div>
-      
+
       <div style="padding: 16px 20px;">
-        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Enter your current password and set a new secure password.</p>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Enter your current password and set a new
+          secure password.</p>
 
         <div class="profile-form-group">
           <label>
             Current Password
-            <input id="input-current-pwd" type="password" required maxlength="255" autocomplete="current-password">
+            <div class="password-input-wrapper">
+              <input id="input-current-pwd" type="password" required maxlength="255" autocomplete="current-password">
+            </div>
           </label>
           <label>
             New Password
-            <input id="input-new-pwd" type="password" required maxlength="255" autocomplete="new-password">
+            <div class="password-input-wrapper">
+              <input id="input-new-pwd" type="password" required maxlength="255" autocomplete="new-password">
+            </div>
           </label>
           <label>
             Confirm New Password
-            <input id="input-confirm-pwd" type="password" required maxlength="255" autocomplete="new-password">
+            <div class="password-input-wrapper">
+              <input id="input-confirm-pwd" type="password" required maxlength="255" autocomplete="new-password">
+            </div>
           </label>
         </div>
 
@@ -125,20 +161,62 @@
 
   <script type="module">
     import { requireAuth, fetchWithAuth, setToken } from './js/auth.js';
-    
+    import { attachPasswordToggle, resetPasswordToggle } from './js/password-toggle.js';
+
     // Authenticate and load current user profile
-    const user = await requireAuth();
-    if (!user) throw new Error('Not authenticated');
+    let currentUser = await requireAuth();
+    if (!currentUser) throw new Error('Not authenticated');
+
+    let pendingAvatarDataUrl = null;
+
+    // Elements
+    const avatarContainer = document.getElementById('profile-avatar');
+    const avatarInitial = document.getElementById('profile-avatar-initial');
+    const avatarImg = document.getElementById('profile-avatar-img');
+    const avatarFileInput = document.getElementById('avatar-file-input');
+    const avatarEditBadge = document.getElementById('avatar-edit-badge');
+    const avatarPreviewContainer = document.getElementById('avatar-preview-container');
+    const saveAvatarBtn = document.getElementById('save-avatar-btn');
+    const cancelAvatarBtn = document.getElementById('cancel-avatar-btn');
+    const removePhotoBtn = document.getElementById('remove-photo-btn');
+    const avatarGlobalMsg = document.getElementById('avatar-global-msg');
+
+    // Helper to render inline message with optional auto-hide
+    function showMessage(el, text, type = 'error', autoHide = true) {
+      el.textContent = text;
+      el.className = `msg-box ${type}`;
+      el.hidden = false;
+      if (el.timer) clearTimeout(el.timer);
+      if (autoHide) {
+        el.timer = setTimeout(() => {
+          el.hidden = true;
+        }, 4500);
+      }
+    }
 
     // Populate User Info
     function renderUserInfo(u) {
+      currentUser = u;
       const username = u.username || '';
       const email = u.email || '';
       const roleStr = u.role === 'admin' ? 'Administrator' : 'Standard User';
+      const avatarSrc = u.avatar_url || u.avatarUrl;
 
       document.getElementById('profile-display-name').textContent = username;
       document.getElementById('profile-display-email').textContent = email;
-      document.getElementById('profile-avatar').textContent = username.charAt(0).toUpperCase();
+
+      if (avatarSrc) {
+        avatarImg.src = avatarSrc;
+        avatarImg.style.display = 'block';
+        avatarInitial.style.display = 'none';
+        removePhotoBtn.style.display = 'inline-block';
+      } else {
+        avatarImg.src = '';
+        avatarImg.style.display = 'none';
+        avatarInitial.textContent = username ? username.charAt(0).toUpperCase() : 'U';
+        avatarInitial.style.display = 'flex';
+        removePhotoBtn.style.display = 'none';
+      }
 
       const roleBadge = document.getElementById('profile-role-badge');
       roleBadge.textContent = roleStr;
@@ -146,20 +224,153 @@
 
       document.getElementById('input-username').value = username;
       document.getElementById('input-email').value = email;
+
+      // Update topbar trigger avatar if present
+      const topbarAvatarBtn = document.querySelector('.profile-avatar-button');
+      if (topbarAvatarBtn) {
+        if (avatarSrc) {
+          topbarAvatarBtn.innerHTML = `<img src="${avatarSrc}" alt="${username}" onerror="this.outerHTML='<span aria-hidden=\\\'true\\\'>${username.charAt(0).toUpperCase()}</span>'">`;
+        } else {
+          topbarAvatarBtn.innerHTML = `<span aria-hidden="true">${username ? username.charAt(0).toUpperCase() : 'U'}</span>`;
+        }
+      }
     }
 
-    renderUserInfo(user);
+    renderUserInfo(currentUser);
 
-    // Helper to render inline message inside modal (disappears after 4 seconds)
-    function showModalMessage(el, text, type = 'error') {
-      el.textContent = text;
-      el.className = `msg-box ${type}`;
-      el.hidden = false;
-      if (el.timer) clearTimeout(el.timer);
-      el.timer = setTimeout(() => {
-        el.hidden = true;
-      }, 4000);
+    // --- Profile Photo Upload & Management ---
+    function triggerFileInput() {
+      avatarFileInput.value = '';
+      avatarFileInput.click();
     }
+
+    avatarContainer.addEventListener('click', triggerFileInput);
+    avatarContainer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        triggerFileInput();
+      }
+    });
+    avatarEditBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerFileInput();
+    });
+
+    const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+    avatarFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      avatarGlobalMsg.hidden = true;
+
+      // Validate MIME type
+      if (!ALLOWED_TYPES.includes(file.type.toLowerCase())) {
+        showMessage(avatarGlobalMsg, 'Invalid file format. Please select a JPG, PNG, or WEBP image.', 'error');
+        avatarFileInput.value = '';
+        return;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        showMessage(avatarGlobalMsg, 'Image size exceeds the 5MB limit. Please choose a smaller image.', 'error');
+        avatarFileInput.value = '';
+        return;
+      }
+
+      // Read file and show preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        pendingAvatarDataUrl = event.target.result;
+        avatarImg.src = pendingAvatarDataUrl;
+        avatarImg.style.display = 'block';
+        avatarInitial.style.display = 'none';
+        avatarPreviewContainer.style.display = 'flex';
+      };
+      reader.onerror = () => {
+        showMessage(avatarGlobalMsg, 'Could not read selected file. Please try again.', 'error');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Cancel preview
+    cancelAvatarBtn.addEventListener('click', () => {
+      pendingAvatarDataUrl = null;
+      avatarFileInput.value = '';
+      avatarPreviewContainer.style.display = 'none';
+      avatarGlobalMsg.hidden = true;
+      renderUserInfo(currentUser);
+    });
+
+    // Save uploaded photo
+    saveAvatarBtn.addEventListener('click', async () => {
+      if (!pendingAvatarDataUrl) return;
+
+      saveAvatarBtn.disabled = true;
+      cancelAvatarBtn.disabled = true;
+      saveAvatarBtn.textContent = 'Uploading...';
+      avatarGlobalMsg.hidden = true;
+
+      try {
+        const res = await fetchWithAuth('/api/auth/avatar', {
+          method: 'POST',
+          body: JSON.stringify({ image: pendingAvatarDataUrl })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showMessage(avatarGlobalMsg, data.error || 'Unable to update profile photo. Please try again.', 'error');
+          saveAvatarBtn.disabled = false;
+          cancelAvatarBtn.disabled = false;
+          saveAvatarBtn.textContent = 'Save Photo';
+          return;
+        }
+
+        pendingAvatarDataUrl = null;
+        avatarFileInput.value = '';
+        avatarPreviewContainer.style.display = 'none';
+        saveAvatarBtn.disabled = false;
+        cancelAvatarBtn.disabled = false;
+        saveAvatarBtn.textContent = 'Save Photo';
+
+        renderUserInfo(data.user);
+        showMessage(avatarGlobalMsg, 'Profile photo updated successfully.', 'success');
+      } catch (err) {
+        saveAvatarBtn.disabled = false;
+        cancelAvatarBtn.disabled = false;
+        saveAvatarBtn.textContent = 'Save Photo';
+        showMessage(avatarGlobalMsg, 'Unable to update profile photo. Please try again.', 'error');
+      }
+    });
+
+    // Remove photo
+    removePhotoBtn.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to remove your profile photo?')) return;
+
+      removePhotoBtn.disabled = true;
+      avatarGlobalMsg.hidden = true;
+
+      try {
+        const res = await fetchWithAuth('/api/auth/avatar', {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+
+        removePhotoBtn.disabled = false;
+
+        if (!res.ok) {
+          showMessage(avatarGlobalMsg, data.error || 'Unable to remove profile photo. Please try again.', 'error');
+          return;
+        }
+
+        renderUserInfo(data.user);
+        showMessage(avatarGlobalMsg, 'Profile photo removed successfully.', 'success');
+      } catch (err) {
+        removePhotoBtn.disabled = false;
+        showMessage(avatarGlobalMsg, 'Unable to remove profile photo. Please try again.', 'error');
+      }
+    });
 
     // --- Modal 1: Edit Profile ---
     const editProfileModal = document.getElementById('edit-profile-modal');
@@ -171,6 +382,8 @@
 
     openEditBtn.addEventListener('click', () => {
       editProfileMsg.hidden = true;
+      document.getElementById('input-username').value = currentUser.username || '';
+      document.getElementById('input-email').value = currentUser.email || '';
       editProfileModal.showModal();
     });
 
@@ -191,21 +404,21 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          showModalMessage(editProfileMsg, data.error || 'Failed to update profile.', 'error');
+          showMessage(editProfileMsg, data.error || 'Failed to update profile.', 'error');
           return;
         }
 
         if (data.token) setToken(data.token);
         renderUserInfo(data.user);
-        
+
         // Display success message inside modal before closing
-        showModalMessage(editProfileMsg, 'Profile details updated successfully!', 'success');
+        showMessage(editProfileMsg, 'Profile details updated successfully!', 'success');
 
         setTimeout(() => {
           window.location.assign('dashboard.html');
         }, 1200);
       } catch (err) {
-        showModalMessage(editProfileMsg, err.message || 'Error updating profile.', 'error');
+        showMessage(editProfileMsg, err.message || 'Error updating profile.', 'error');
       }
     });
 
@@ -216,9 +429,19 @@
     const cancelPwdBtn = document.getElementById('cancel-pwd-modal-btn');
     const changePwdForm = document.getElementById('change-pwd-form');
     const pwdModalMsg = document.getElementById('pwd-modal-msg');
+    const currentPwdInput = document.getElementById('input-current-pwd');
+    const newPwdInput = document.getElementById('input-new-pwd');
+    const confirmPwdInput = document.getElementById('input-confirm-pwd');
+
+    attachPasswordToggle(currentPwdInput);
+    attachPasswordToggle(newPwdInput);
+    attachPasswordToggle(confirmPwdInput);
 
     function resetPasswordModal() {
       changePwdForm.reset();
+      resetPasswordToggle(currentPwdInput);
+      resetPasswordToggle(newPwdInput);
+      resetPasswordToggle(confirmPwdInput);
       pwdModalMsg.hidden = true;
     }
 
@@ -259,19 +482,19 @@
       const confirmPassword = document.getElementById('input-confirm-pwd').value;
 
       if (!currentPassword) {
-        showModalMessage(pwdModalMsg, 'Please enter your current password.', 'error');
+        showMessage(pwdModalMsg, 'Please enter your current password.', 'error');
         return;
       }
 
       // Dynamic check for missing requirements
       const missingRequirementMsg = evaluatePasswordPolicy(newPassword);
       if (missingRequirementMsg) {
-        showModalMessage(pwdModalMsg, missingRequirementMsg, 'error');
+        showMessage(pwdModalMsg, missingRequirementMsg, 'error');
         return;
       }
 
       if (newPassword !== confirmPassword) {
-        showModalMessage(pwdModalMsg, 'New password and confirmation do not match.', 'error');
+        showMessage(pwdModalMsg, 'New password and confirmation do not match.', 'error');
         return;
       }
 
@@ -283,21 +506,22 @@
         const data = await res.json();
         if (!res.ok) {
           // Shows "Current password is incorrect." or server validation error
-          showModalMessage(pwdModalMsg, data.error || 'Failed to change password.', 'error');
+          showMessage(pwdModalMsg, data.error || 'Failed to change password.', 'error');
           return;
         }
 
         // Display success message inside modal before closing
-        showModalMessage(pwdModalMsg, 'Password changed successfully!', 'success');
+        showMessage(pwdModalMsg, 'Password changed successfully!', 'success');
 
         setTimeout(() => {
           window.location.assign('dashboard.html');
         }, 1200);
       } catch (err) {
-        showModalMessage(pwdModalMsg, err.message || 'Error changing password.', 'error');
+        showMessage(pwdModalMsg, err.message || 'Error changing password.', 'error');
       }
     });
   </script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
+
 </html>

@@ -34,7 +34,7 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Username and password are required.' });
     }
     try {
-        const result = await pool.query(`SELECT id, username, email, password_hash, role, is_active, failed_attempts, locked_until
+        const result = await pool.query(`SELECT id, username, email, password_hash, role, is_active, failed_attempts, locked_until, avatar_url
        FROM users WHERE username = $1`, [String(username).trim()]);
         const user = result.rows[0];
         if (!user) {
@@ -71,7 +71,14 @@ router.post('/login', async (req, res) => {
         });
         res.json({
             token,
-            user: { id: user.id, username: user.username, email: user.email, role: user.role }
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                avatar_url: user.avatar_url || null,
+                avatarUrl: user.avatar_url || null
+            }
         });
     }
     catch (err) {
@@ -90,10 +97,10 @@ router.post('/logout', requireAuth, async (req, res) => {
 });
 import { validatePassword } from '../utils/passwordPolicy.js';
 const SALT_ROUNDS = 12;
-// GET /api/auth/me — return current user info
+// GET /api/auth/me — return current user info including avatar
 router.get('/me', requireAuth, async (req, res) => {
     try {
-        const result = await pool.query(`SELECT id, username, email, role, is_active, created_at FROM users WHERE id = $1`, [req.user.id]);
+        const result = await pool.query(`SELECT id, username, email, role, is_active, created_at, avatar_url FROM users WHERE id = $1`, [req.user.id]);
         if (!result.rowCount) {
             return res.status(404).json({ error: 'User not found.' });
         }
@@ -105,7 +112,9 @@ router.get('/me', requireAuth, async (req, res) => {
                 email: u.email,
                 role: u.role,
                 is_active: u.is_active,
-                createdAt: u.created_at
+                createdAt: u.created_at,
+                avatar_url: u.avatar_url || null,
+                avatarUrl: u.avatar_url || null
             }
         });
     }
@@ -113,7 +122,7 @@ router.get('/me', requireAuth, async (req, res) => {
         res.json({ user: req.user });
     }
 });
-// PUT /api/auth/profile — update profile email/username
+// POST /api/auth/profile — update profile email/username
 router.post('/profile', requireAuth, async (req, res) => {
     const { email, username } = req.body;
     if (!email && !username) {
@@ -126,7 +135,7 @@ router.post('/profile', requireAuth, async (req, res) => {
        SET email = COALESCE($1, email),
            username = COALESCE($2, username)
        WHERE id = $3
-       RETURNING id, username, email, role, is_active, created_at`, [newEmail, newUsername, req.user.id]);
+       RETURNING id, username, email, role, is_active, created_at, avatar_url`, [newEmail, newUsername, req.user.id]);
         if (!result.rowCount) {
             return res.status(404).json({ error: 'User account not found.' });
         }
@@ -151,7 +160,9 @@ router.post('/profile', requireAuth, async (req, res) => {
                 email: updatedUser.email,
                 role: updatedUser.role,
                 is_active: updatedUser.is_active,
-                createdAt: updatedUser.created_at
+                createdAt: updatedUser.created_at,
+                avatar_url: updatedUser.avatar_url || null,
+                avatarUrl: updatedUser.avatar_url || null
             }
         });
     }
@@ -161,6 +172,112 @@ router.post('/profile', requireAuth, async (req, res) => {
         }
         console.error('Profile update error:', err);
         res.status(500).json({ error: 'Could not update profile information.' });
+    }
+});
+// Helper for validating and storing avatar
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+async function handleAvatarUpload(req, res) {
+    const image = req.body.image || req.body.avatar_url || req.body.avatarUrl;
+    if (!image || typeof image !== 'string') {
+        return res.status(400).json({ error: 'Please select a valid image file to upload.' });
+    }
+    const trimmed = image.trim();
+    // Validate format: must be Data URL with image MIME type or valid URL
+    const isDataUrl = trimmed.startsWith('data:image/');
+    const isHttpUrl = trimmed.startsWith('http://') || trimmed.startsWith('https://');
+    if (!isDataUrl && !isHttpUrl) {
+        return res.status(400).json({ error: 'Invalid file format. Supported formats are JPG, PNG, and WEBP.' });
+    }
+    if (isDataUrl) {
+        const match = trimmed.match(/^data:image\/(jpeg|jpg|png|webp);base64,/i);
+        if (!match) {
+            return res.status(400).json({ error: 'Invalid image format. Please upload a JPG, PNG, or WEBP image.' });
+        }
+        // Check approximate byte size of base64
+        const base64Data = trimmed.replace(/^data:image\/\w+;base64,/, '');
+        const approximateBytes = Math.ceil((base64Data.length * 3) / 4);
+        if (approximateBytes > MAX_IMAGE_SIZE_BYTES) {
+            return res.status(400).json({ error: 'Image size exceeds the 5MB limit. Please choose a smaller image.' });
+        }
+    }
+    try {
+        const result = await pool.query(`UPDATE users
+       SET avatar_url = $1
+       WHERE id = $2
+       RETURNING id, username, email, role, is_active, created_at, avatar_url`, [trimmed, req.user.id]);
+        if (!result.rowCount) {
+            return res.status(404).json({ error: 'User account not found.' });
+        }
+        const updatedUser = result.rows[0];
+        await logActivity({
+            userId: updatedUser.id,
+            username: updatedUser.username,
+            action: 'update_avatar',
+            resourceType: 'user',
+            resourceId: updatedUser.id,
+            resourceName: updatedUser.username,
+            ipAddress: getClientIp(req)
+        });
+        res.json({
+            message: 'Profile photo updated successfully.',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                is_active: updatedUser.is_active,
+                createdAt: updatedUser.created_at,
+                avatar_url: updatedUser.avatar_url,
+                avatarUrl: updatedUser.avatar_url
+            }
+        });
+    }
+    catch (err) {
+        console.error('Avatar update error:', err);
+        res.status(500).json({ error: 'Unable to update profile photo. Please try again.' });
+    }
+}
+// POST /api/auth/avatar — upload/update profile photo
+router.post('/avatar', requireAuth, handleAvatarUpload);
+// PUT /api/auth/avatar — update profile photo (idempotent PUT alias)
+router.put('/avatar', requireAuth, handleAvatarUpload);
+// DELETE /api/auth/avatar — remove current profile photo
+router.delete('/avatar', requireAuth, async (req, res) => {
+    try {
+        const result = await pool.query(`UPDATE users
+       SET avatar_url = NULL
+       WHERE id = $1
+       RETURNING id, username, email, role, is_active, created_at, avatar_url`, [req.user.id]);
+        if (!result.rowCount) {
+            return res.status(404).json({ error: 'User account not found.' });
+        }
+        const updatedUser = result.rows[0];
+        await logActivity({
+            userId: updatedUser.id,
+            username: updatedUser.username,
+            action: 'remove_avatar',
+            resourceType: 'user',
+            resourceId: updatedUser.id,
+            resourceName: updatedUser.username,
+            ipAddress: getClientIp(req)
+        });
+        res.json({
+            message: 'Profile photo removed successfully.',
+            user: {
+                id: updatedUser.id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                is_active: updatedUser.is_active,
+                createdAt: updatedUser.created_at,
+                avatar_url: null,
+                avatarUrl: null
+            }
+        });
+    }
+    catch (err) {
+        console.error('Avatar removal error:', err);
+        res.status(500).json({ error: 'Unable to remove profile photo. Please try again.' });
     }
 });
 // PUT /api/auth/change-password — update user password

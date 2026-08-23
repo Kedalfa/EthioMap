@@ -34,7 +34,9 @@
       </div>
       <div class="input-group">
         <label for="login-password">Password</label>
-        <input id="login-password" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+        <div class="password-input-wrapper">
+          <input id="login-password" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+        </div>
       </div>
       <button id="login-submit" type="submit">Sign in</button>
     </form>
@@ -43,5 +45,6 @@
 </div>
 </main>
 <script src="js/login.js"></script>
+<script type="module" src="js/password-toggle.js"></script>
 </body>
 </html>

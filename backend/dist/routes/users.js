@@ -9,7 +9,7 @@ router.use(requireAuth);
 // GET /api/users — list all users (admin only)
 router.get('/', requireAdmin, async (_req, res) => {
     try {
-        const result = await pool.query(`SELECT id, username, email, role, is_active, created_at
+        const result = await pool.query(`SELECT id, username, email, role, is_active, created_at, avatar_url
        FROM users ORDER BY created_at DESC`);
         res.json(result.rows);
     }

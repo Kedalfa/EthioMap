@@ -1,13 +1,17 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EthioMap | Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/theme.css">
 </head>
+
 <body>
   <header class="topbar">
     <a class="brand" href="Ethiomap.html">
@@ -28,8 +32,11 @@
           <div id="dashboard-eyebrow" class="eyebrow">Admin Dashboard</div>
           <p id="dashboard-description">Manage datasets, users, and system activity from here.</p>
         </div>
-        <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-label="Collapse dashboard navigation" title="Collapse navigation" onclick="toggleDashboardSidebar()">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7"></path></svg>
+        <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true"
+          aria-label="Collapse dashboard navigation" title="Collapse navigation" onclick="toggleDashboardSidebar()">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m15 5-7 7 7 7"></path>
+          </svg>
         </button>
       </div>
     </div>
@@ -53,8 +60,12 @@
     <div class="tile-grid"></div>
     <!-- Recent activity -->
     <section class="recent-section admin-only">
-      <div class="section-head"><h2>Recent Activity</h2><a href="activity-log.html" class="view-all">View all →</a></div>
-      <div id="recent-list" class="recent-list"><div class="empty-state">Loading…</div></div>
+      <div class="section-head">
+        <h2>Recent Activity</h2><a href="activity-log.html" class="view-all">View all →</a>
+      </div>
+      <div id="recent-list" class="recent-list">
+        <div class="empty-state">Loading…</div>
+      </div>
     </section>
   </main>
   <script>
@@ -109,13 +120,13 @@
             list.innerHTML = '<div class="empty-state">No activity yet.</div>';
           }
         }
-      } catch {}
+      } catch { }
     } else {
       // Non-admin: just show dataset count
       try {
         const res = await fetch(`${API_BASE}/api/datasets`);
         if (res.ok) { const d = await res.json(); document.getElementById('stat-datasets').textContent = d.length; }
-      } catch {}
+      } catch { }
       document.getElementById('stat-users').closest('.stat-card').style.display = 'none';
       document.getElementById('stat-actions').closest('.stat-card').style.display = 'none';
     }
@@ -123,4 +134,5 @@
   <script type="module" src="js/sidebar.js"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
+
 </html>

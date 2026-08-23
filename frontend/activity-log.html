@@ -1,16 +1,21 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EthioMap | Activity Log</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/theme.css">
 </head>
+
 <body>
   <header class="topbar">
-    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map Information Subsystem</small></span></a>
+    <a class="brand" href="dashboard.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map
+          Information Subsystem</small></span></a>
     <nav class="top-nav">
       <a href="Ethiomap.html" class="nav-link nav-item">Map</a>
       <a href="about.html" class="nav-link nav-item">About Us</a>
@@ -21,7 +26,11 @@
   <main class="dash-main activity-page">
     <div class="dash-content">
       <div class="page-heading">
-        <div><div class="eyebrow">Admin</div><h1>Activity Log</h1><p>Full history of every action performed in the system.</p></div>
+        <div>
+          <div class="eyebrow">Admin</div>
+          <h1>Activity Log</h1>
+          <p>Full history of every action performed in the system.</p>
+        </div>
         <span id="log-count" class="tag">Loading…</span>
       </div>
       <!-- Filters -->
@@ -43,8 +52,20 @@
       </div>
       <section class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Resource</th><th>IP</th></tr></thead>
-          <tbody id="log-tbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Resource</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody">
+            <tr>
+              <td colspan="5" class="empty-state">Loading…</td>
+            </tr>
+          </tbody>
         </table>
       </section>
       <!-- Pagination -->
@@ -111,4 +132,5 @@
   <script type="module" src="js/sidebar.js"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
+
 </html>
