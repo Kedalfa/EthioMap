@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EthioMap | Manage Datasets</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/manage-dataset.css?v=dataset-management-1">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/theme.css">
 </head>
+
 <body>
   <header class="topbar">
     <a class="brand" href="dashboard.html">
@@ -25,27 +29,37 @@
   <main class="dash-main">
     <div class="dash-content">
       <div class="page-heading">
-        <div><div class="eyebrow">Dataset management</div><h1>Manage map layers</h1><p>Review, upload, edit, or remove the datasets available on your map.</p></div>
-        <div class="page-actions"><span id="dataset-count" class="tag">Loading...</span><button id="upload-dataset" class="primary-action" type="button">Upload GeoJSON</button></div>
+        <div>
+          <div class="eyebrow">Dataset management</div>
+          <h1>Manage map layers</h1>
+          <p>Review, upload, edit, or remove the datasets available on your map.</p>
+        </div>
+        <div class="page-actions"><span id="dataset-count" class="tag">Loading...</span><button id="upload-dataset"
+            class="primary-action" type="button">Upload GeoJSON</button></div>
       </div>
       <div class="dataset-search-wrap">
         <span class="dataset-search-icon">⌕</span>
-        <input id="dataset-search" type="search" placeholder="Search datasets by name..." aria-label="Search datasets by name" autocomplete="off">
+        <input id="dataset-search" type="search" placeholder="Search datasets by name..."
+          aria-label="Search datasets by name" autocomplete="off">
       </div>
       <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-      <section id="dataset-list" class="dataset-list" aria-live="polite"><div class="empty-state">Loading datasets...</div></section>
+      <section id="dataset-list" class="dataset-list" aria-live="polite">
+        <div class="empty-state">Loading datasets...</div>
+      </section>
     </div>
   </main>
   <dialog id="upload-dialog">
     <form id="upload-form">
       <h2>Upload GeoJSON dataset</h2>
-      <label>GeoJSON file<input id="geojson-file" type="file" accept=".geojson,.json,application/geo+json,application/json" required></label>
+      <label>GeoJSON file<input id="geojson-file" type="file"
+          accept=".geojson,.json,application/geo+json,application/json" required></label>
       <label>Dataset name<input id="upload-name" required maxlength="255"></label>
       <label>Description<textarea id="upload-description" maxlength="2000" rows="3"></textarea></label>
       <label>Coordinate reference system<input id="upload-crs" maxlength="100" value="EPSG:4326"></label>
       <label>Owner<input id="upload-owner" maxlength="255"></label>
       <label>Source<input id="upload-source" maxlength="500"></label>
-      <div class="dialog-actions"><button id="upload-cancel" type="button">Cancel</button><button class="primary" type="submit">Upload dataset</button></div>
+      <div class="dialog-actions"><button id="upload-cancel" type="button">Cancel</button><button class="primary"
+          type="submit">Upload dataset</button></div>
     </form>
   </dialog>
   <dialog id="edit-dialog">
@@ -56,11 +70,13 @@
       <label>Coordinate reference system<input id="edit-crs" maxlength="100" placeholder="EPSG:4326"></label>
       <label>Owner<input id="edit-owner" maxlength="255"></label>
       <label>Source<input id="edit-source" maxlength="500"></label>
-      <div class="dialog-actions"><button id="edit-cancel" type="button">Cancel</button><button class="primary" type="submit">Save changes</button></div>
+      <div class="dialog-actions"><button id="edit-cancel" type="button">Cancel</button><button class="primary"
+          type="submit">Save changes</button></div>
     </form>
   </dialog>
   <script type="module" src="js/sidebar.js"></script>
   <script type="module" src="js/manage-dataset.js?v=dataset-management-1"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
+
 </html>

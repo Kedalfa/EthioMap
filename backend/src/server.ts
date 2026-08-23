@@ -56,9 +56,14 @@ app.use('/api/auth',     authRouter);
 app.use('/api/users',    usersRouter);
 app.use('/api/logs',     logsRouter);
 
-// Start server and seed admin
+// Start server, migrate schema and seed admin
 app.listen(PORT, async () => {
   console.log(`Ethio-Map backend API server listening on http://localhost:${PORT}`);
+  try {
+    await pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;');
+  } catch (e) {
+    console.error('Database migration check failed:', e);
+  }
   await seedAdmin();
 });
 
