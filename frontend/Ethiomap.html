@@ -20,7 +20,7 @@
     <header class="topbar">
       <div class="brand"><div class="brand-mark">E</div><div><strong>EthioMap</strong><small>Map Information Subsystem</small></div></div>
       <div class="top-actions" id="top-nav-actions">
-        <a class="nav-link nav-item" href="Ethiomap.html">Map</a>
+        <a class="nav-link nav-item active" href="Ethiomap.html" aria-current="page">Map</a>
         <a class="nav-link nav-item" href="about.html">About Us</a>
         <a class="upload-dataset" href="login.html" id="nav-login-btn">Login</a>
       </div> 
@@ -110,9 +110,9 @@
         if (!document.getElementById('nav-dashboard-link')) {
           const dashLink = document.createElement('a');
           dashLink.id = 'nav-dashboard-link';
-          dashLink.className = 'nav-link';
+          dashLink.className = 'nav-link nav-item';
           dashLink.href = 'dashboard.html';
-          dashLink.textContent = '← Dashboard';
+          dashLink.textContent = 'Dashboard';
           topNavActions.appendChild(dashLink);
         }
 

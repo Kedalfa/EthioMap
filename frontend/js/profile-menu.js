@@ -74,21 +74,24 @@ function createAccountDialog(user) {
     const data = Object.fromEntries(new FormData(form));
     const response = await fetchWithAuth('/api/auth/profile', { method: 'POST', body: JSON.stringify(data) });
     const result = await response.json();
-    if (!response.ok) { message.textContent = result.error || 'Unable to update your profile.'; return; }
+    if (!response.ok) { message.className = 'account-dialog-message error'; message.textContent = result.error || 'Unable to update your profile.'; return; }
     setToken(result.token);
-    message.textContent = 'Profile updated. Reload the page to see your new avatar initial.';
+    message.className = 'account-dialog-message success';
+    message.textContent = 'Profile updated successfully. Taking you to the dashboard…';
+    window.setTimeout(() => window.location.assign('dashboard.html'), 1200);
   });
   dialog.querySelector('[data-account-form="password"]').addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const message = form.querySelector('output');
     const data = Object.fromEntries(new FormData(form));
-    if (data.newPassword !== data.confirmPassword) { message.textContent = 'New password and confirmation do not match.'; return; }
+    if (data.newPassword !== data.confirmPassword) { message.className = 'account-dialog-message error'; message.textContent = 'New password and confirmation do not match.'; return; }
     const response = await fetchWithAuth('/api/auth/change-password', { method: 'PUT', body: JSON.stringify(data) });
     const result = await response.json();
-    if (!response.ok) { message.textContent = result.error || 'Unable to change your password.'; return; }
-    message.textContent = 'Password changed successfully.';
-    form.reset();
+    if (!response.ok) { message.className = 'account-dialog-message error'; message.textContent = result.error || 'Unable to change your password.'; return; }
+    message.className = 'account-dialog-message success';
+    message.textContent = 'Password changed successfully. Taking you to the dashboard…';
+    window.setTimeout(() => window.location.assign('dashboard.html'), 1200);
   });
   return dialog;
 }

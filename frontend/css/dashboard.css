@@ -923,6 +923,9 @@ input:focus, select:focus, textarea:focus {
   .dash-main > .tile-grid { grid-column: auto; grid-row: auto; }
   .dash-main > .dashboard-welcome { margin: 22px 0 0; text-align: left; }
   .page-heading, .dash-heading { align-items: flex-start; flex-direction: column; }
+  .page-actions { width: 100%; flex-wrap: wrap; }
+  .dialog-actions { flex-wrap: wrap; }
+  .dialog-actions button { flex: 1 1 130px; }
   h1 { font-size: 27px; }
   .recent-row { grid-template-columns: 1fr; gap: 6px; }
   .profile-card { flex-direction: column; padding: 22px; }
