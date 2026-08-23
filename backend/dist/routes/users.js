@@ -60,7 +60,9 @@ router.put('/:id', requireAdmin, async (req, res) => {
     try {
         const result = await pool.query(`UPDATE users
        SET role = COALESCE(CASE WHEN $1 = ANY($2::text[]) THEN $1 ELSE role END, role),
-           is_active = COALESCE($3, is_active)
+           is_active = COALESCE($3, is_active),
+           failed_attempts = CASE WHEN $3 = TRUE THEN 0 ELSE failed_attempts END,
+           locked_until = CASE WHEN $3 = TRUE THEN NULL ELSE locked_until END
        WHERE id = $4
        RETURNING id, username, email, role, is_active, created_at`, [role || null, allowedRoles, is_active !== undefined ? is_active : null, req.params.id]);
         if (!result.rowCount)
