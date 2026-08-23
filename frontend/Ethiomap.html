@@ -101,15 +101,9 @@
         <button id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
       </div>
       <div class="map-tools" aria-label="Map controls">
-        <button id="basemap-toggle" type="button" title="Choose basemap" aria-label="Choose basemap"
-          aria-expanded="false" aria-pressed="false"><svg class="layers-icon" viewBox="0 0 24 24" aria-hidden="true"
-            focusable="false">
-            <rect x="4" y="4" width="12" height="12" rx="1"></rect>
-            <rect x="8" y="8" width="12" height="12" rx="1"></rect>
-          </svg></button>
         <label class="basemap-picker" for="basemap-select">
           <select id="basemap-select" aria-label="Choose basemap">
-            <option value="street">Street map</option>
+            <option value="street">Street Map</option>
             <option value="satellite">Satellite</option>
           </select>
         </label>
@@ -125,17 +119,56 @@
           </svg>
         </button>
       </div>
+
+      <!-- Independent Export / Download Section located BELOW the existing map controls card -->
+      <div id="export-panel" class="export-panel collapsed" aria-label="Download and export">
+        <div class="export-panel-head">
+          <button id="export-panel-toggle" class="export-panel-toggle-btn" type="button" aria-expanded="false" aria-label="Toggle export options">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export</span>
+          </button>
+        </div>
+        <div class="export-panel-body">
+          <form id="export-form" class="export-form">
+            <label for="export-format-select">
+              Format
+              <select id="export-format-select">
+                <option value="geojson">GeoJSON</option>
+                <option value="png">Map PNG</option>
+              </select>
+            </label>
+            <div id="export-dataset-field">
+              <label for="export-dataset-select">
+                Dataset
+                <select id="export-dataset-select">
+                  <option value="">Select Dataset</option>
+                </select>
+              </label>
+            </div>
+            <div class="export-panel-actions">
+              <button id="export-submit" class="primary" type="submit">Download</button>
+              <button id="export-cancel" type="button">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
       <div id="map-feedback" class="map-feedback" role="status" aria-live="polite" hidden></div>
     </main>
   </div>
+
   <!-- Load Leaflet first because app.js uses the global L object. -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <!-- Load the project map behavior after the page elements exist. -->
   <script src="js/app.js?v=20260809-2"></script>
-  <!-- Dynamic Auth Navbar Updater -->
+  <!-- Dynamic Auth Navbar Updater & Map Export -->
   <script type="module">
     import { getMe } from './js/auth.js';
     import { initialiseProfileMenu } from './js/profile-menu.js';
+    import { initMapExport } from './js/map-export.js';
 
     const topNavActions = document.getElementById('top-nav-actions');
 
@@ -170,6 +203,7 @@
     }
 
     updateNavbarForAuth();
+    initMapExport();
   </script>
 </body>
 

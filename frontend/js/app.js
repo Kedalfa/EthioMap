@@ -17,29 +17,25 @@ const map = L.map('map', {
     zoomControl: false,
     doubleClickZoom: true
 }).setView([9.03, 38.74], 6);
+window.map = map;
 
 // Keep basemaps in their own layer so switching imagery never removes data,
 // measurement, or search-result overlays already drawn on the map.
 const basemapSelect = document.getElementById('basemap-select');
-const basemapToggle = document.getElementById('basemap-toggle');
 const mapTools = document.querySelector('.map-tools');
 const basemaps = {
     street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+        attribution: '&copy; OpenStreetMap contributors',
+        crossOrigin: true
     }),
     satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
+        attribution: 'Tiles &copy; Esri',
+        crossOrigin: true
     })
 };
 let activeBasemap = basemaps.street.addTo(map);
 
-basemapToggle?.addEventListener('click', () => {
-    mapTools?.classList.toggle('basemap-open');
-    basemapToggle.setAttribute('aria-expanded', String(mapTools?.classList.contains('basemap-open')));
-    if (mapTools?.classList.contains('basemap-open')) basemapSelect?.focus();
-});
-
-basemapSelect.addEventListener('change', () => {
+basemapSelect?.addEventListener('change', () => {
     const selectedBasemap = basemaps[basemapSelect.value] || basemaps.street;
     if (selectedBasemap === activeBasemap) return;
     map.removeLayer(activeBasemap);
