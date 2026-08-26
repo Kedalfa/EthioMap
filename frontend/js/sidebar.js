@@ -65,6 +65,29 @@ const SIDEBAR_ITEMS = [
 ];
 
 const STORAGE_KEY = 'ethiomap_sidebar_collapsed';
+const MOBILE_NAV_QUERY = '(max-width: 600px)';
+
+function setTogglePresentation(dashMain, toggleBtn) {
+  if (!toggleBtn) return;
+  const isMobile = window.matchMedia(MOBILE_NAV_QUERY).matches;
+  const isOpen = dashMain.classList.contains('mobile-sidebar-open');
+  const isCollapsed = dashMain.classList.contains('sidebar-collapsed');
+
+  if (isMobile) {
+    toggleBtn.innerHTML = isOpen
+      ? '<span aria-hidden="true">×</span>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>';
+    toggleBtn.setAttribute('aria-expanded', String(isOpen));
+    toggleBtn.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
+    toggleBtn.title = isOpen ? 'Close navigation' : 'Open navigation';
+    return;
+  }
+
+  toggleBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7"></path></svg>';
+  toggleBtn.setAttribute('aria-expanded', String(!isCollapsed));
+  toggleBtn.setAttribute('aria-label', isCollapsed ? 'Expand navigation' : 'Collapse navigation');
+  toggleBtn.title = isCollapsed ? 'Expand navigation' : 'Collapse navigation';
+}
 
 function currentPageId() {
   const path = window.location.pathname;
@@ -103,7 +126,7 @@ export async function initSidebar() {
         <div id="dashboard-eyebrow" class="eyebrow">${isAdmin ? 'Admin Dashboard' : 'User Dashboard'}</div>
         <p id="dashboard-description">${isAdmin ? 'Manage datasets, users, and system activity.' : 'Manage datasets.'}</p>
       </div>
-      <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="${!isCollapsed}" aria-label="${isCollapsed ? 'Expand navigation' : 'Collapse navigation'}" title="${isCollapsed ? 'Expand navigation' : 'Collapse navigation'}">
+      <button id="sidebar-toggle" class="sidebar-toggle" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5-7 7 7 7"></path></svg>
       </button>
     </div>
@@ -112,12 +135,16 @@ export async function initSidebar() {
   // Attach toggle listener
   const toggleBtn = dashIntro.querySelector('#sidebar-toggle');
   if (toggleBtn) {
+    setTogglePresentation(dashMain, toggleBtn);
     toggleBtn.addEventListener('click', () => {
+      if (window.matchMedia(MOBILE_NAV_QUERY).matches) {
+        dashMain.classList.toggle('mobile-sidebar-open');
+        setTogglePresentation(dashMain, toggleBtn);
+        return;
+      }
       const nowCollapsed = dashMain.classList.toggle('sidebar-collapsed');
       sessionStorage.setItem(STORAGE_KEY, nowCollapsed ? 'true' : 'false');
-      toggleBtn.setAttribute('aria-expanded', String(!nowCollapsed));
-      toggleBtn.setAttribute('aria-label', nowCollapsed ? 'Expand navigation' : 'Collapse navigation');
-      toggleBtn.title = nowCollapsed ? 'Expand navigation' : 'Collapse navigation';
+      setTogglePresentation(dashMain, toggleBtn);
     });
   }
 
@@ -150,12 +177,15 @@ window.toggleDashboardSidebar = function() {
   const dashMain = document.querySelector('.dash-main');
   const toggleBtn = document.getElementById('sidebar-toggle');
   if (!dashMain) return;
+  if (window.matchMedia(MOBILE_NAV_QUERY).matches) {
+    dashMain.classList.toggle('mobile-sidebar-open');
+    setTogglePresentation(dashMain, toggleBtn);
+    return;
+  }
   const nowCollapsed = dashMain.classList.toggle('sidebar-collapsed');
   sessionStorage.setItem(STORAGE_KEY, nowCollapsed ? 'true' : 'false');
   if (toggleBtn) {
-    toggleBtn.setAttribute('aria-expanded', String(!nowCollapsed));
-    toggleBtn.setAttribute('aria-label', nowCollapsed ? 'Expand navigation' : 'Collapse navigation');
-    toggleBtn.title = nowCollapsed ? 'Expand navigation' : 'Collapse navigation';
+    setTogglePresentation(dashMain, toggleBtn);
   }
 };
 

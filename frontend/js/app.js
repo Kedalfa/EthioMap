@@ -4,6 +4,15 @@ const panelToggle = document.querySelector('.panel-toggle');
 const expandPanelIcon = '<svg class="panel-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg>';
 const collapsePanelIcon = '<svg class="panel-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg>';
 
+// On phones, keep the map panel out of the way until the user opens it.
+if (window.matchMedia('(max-width: 520px)').matches) {
+  sidePanel.classList.add('collapsed');
+  panelToggle.innerHTML = expandPanelIcon;
+  panelToggle.setAttribute('aria-expanded', 'false');
+  panelToggle.setAttribute('aria-label', 'Expand side panel');
+  panelToggle.title = 'Expand side panel';
+}
+
 /* Toggle the panel width and update accessibility text for the preview control. */
 panelToggle.addEventListener('click', () => {
   const isCollapsed = sidePanel.classList.toggle('collapsed');
@@ -60,11 +69,26 @@ function featurePopup(feature) {
 const locationSidebar = document.getElementById('location-sidebar');
 const locationSidebarContent = document.getElementById('location-sidebar-content');
 const closeLocationSidebar = document.getElementById('close-location-sidebar');
+const downloadDatasetGeojsonButton = document.getElementById('download-dataset-geojson');
+let selectedDatasetForDownload = null;
 
-function showLocationSidebar({ title = 'Selected place', coordinates, details = '' }) {
+function showLocationSidebar({ title = 'Selected place', coordinates, details = '', dataset = null }) {
+    selectedDatasetForDownload = dataset;
+    downloadDatasetGeojsonButton?.classList.toggle('is-visible', Boolean(dataset));
     locationSidebarContent.innerHTML = `<div class="location-card"><h3>${escapeHtml(title)}</h3><div class="location-field"><span>Coordinates</span><strong>${escapeHtml(coordinates)}</strong></div>${details ? `<div class="location-details"><span>Location information</span><div>${details}</div></div>` : ''}</div>`;
     locationSidebar.hidden = false;
 }
+
+downloadDatasetGeojsonButton?.addEventListener('click', () => {
+    if (!selectedDatasetForDownload) return;
+    const blob = new Blob([JSON.stringify(selectedDatasetForDownload.geojson, null, 2)], { type: 'application/geo+json' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${String(selectedDatasetForDownload.name || 'dataset').replace(/[^a-z0-9-_]+/gi, '_')}.geojson`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+});
 
 function mostSpecificOsmName(result) {
     const address = result.address || {};
@@ -81,6 +105,8 @@ function mostSpecificOsmName(result) {
 
 closeLocationSidebar.addEventListener('click', () => {
     locationSidebar.hidden = true;
+    selectedDatasetForDownload = null;
+    downloadDatasetGeojsonButton?.classList.remove('is-visible');
     if (reverseMarker) {
         map.removeLayer(reverseMarker);
         reverseMarker = null;
@@ -206,10 +232,10 @@ async function selectLocation(location) {
         showLocationSidebar({
             title: location.name,
             coordinates: coordsText,
-            details: propsDetail
+            details: propsDetail,
+            dataset: { name: location.datasetName || location.name, geojson: savedLayer.layer.toGeoJSON() }
         });
 
-        showFeedback(`Showing ${location.type || 'Dataset'}: "${location.name}".`);
         return;
     }
 
@@ -237,33 +263,19 @@ async function selectLocation(location) {
 
 let searchDebounceTimer;
 async function performLiveSearch(query) {
-    const staticMatches = databaseLocations.filter((location) =>
-        location.name.toLowerCase().includes(query.toLowerCase())
-    );
-    if (!query.trim()) return staticMatches;
+    const normalizedQuery = query.trim().toLowerCase();
+    const uniqueDatasets = new Map();
 
-    try {
-        const response = await fetch(`${API_BASE}/api/datasets/search?q=${encodeURIComponent(query.trim())}`);
-        if (response.ok) {
-            const data = await response.json();
-            const apiResults = data.results || [];
-            
-            const combined = [...apiResults, ...staticMatches];
-            const unique = [];
-            const seenKeys = new Set();
-            for (const item of combined) {
-                const key = `${item.name}-${item.type}-${item.datasetId || ''}-${item.featureIndex || ''}`;
-                if (!seenKeys.has(key)) {
-                    seenKeys.add(key);
-                    unique.push(item);
-                }
-            }
-            return unique;
-        }
-    } catch (err) {
-        console.warn('Live search fallback to local records:', err);
-    }
-    return staticMatches;
+    // Suggestions come only from the saved datasets already loaded onto the map.
+    // One entry per dataset ID prevents duplicate names and feature-level matches.
+    databaseLocations.forEach((location) => {
+        if (!location.datasetId || uniqueDatasets.has(location.datasetId)) return;
+        uniqueDatasets.set(location.datasetId, location);
+    });
+
+    return [...uniqueDatasets.values()].filter((location) =>
+        !normalizedQuery || location.name.toLowerCase().includes(normalizedQuery)
+    );
 }
 
 async function runSearch() {
@@ -686,27 +698,6 @@ async function loadBaseSpatialLayers() {
             const key = `base-${layerName}`;
             layerRegistry[key] = { layer: layerObj, active: true, name: `Base ${layerName.toUpperCase()}`, datasetId: null };
 
-            geojson.features.forEach((feat) => {
-                const name = feat.properties?.name || feat.id;
-                if (!name) return;
-                let coords;
-                if (feat.geometry?.type === 'Point') {
-                    coords = [feat.geometry.coordinates[1], feat.geometry.coordinates[0]];
-                } else if (feat.geometry?.coordinates) {
-                    // Primitive center approximation for multi/polygon/line
-                    const c = feat.geometry.coordinates;
-                    const flat = Array.isArray(c[0]) ? (Array.isArray(c[0][0]) ? c[0][0] : c[0]) : c;
-                    if (flat && flat.length >= 2) coords = [flat[1], flat[0]];
-                }
-                if (coords) {
-                    databaseLocations.push({
-                        name: name,
-                        type: layerName.slice(0, -1).toUpperCase(),
-                        coordinates: coords,
-                        properties: feat.properties
-                    });
-                }
-            });
         }
     } catch (e) {
         console.warn('Base spatial layers could not be loaded from API:', e);
@@ -731,7 +722,6 @@ async function loadSavedDatasets() {
                 datasetId: dataset.id
             });
         }
-        if (datasets.length) showFeedback(`${datasets.length} saved dataset(s) loaded.`);
     } catch {
         // The map remains usable when the API is not running.
     }
