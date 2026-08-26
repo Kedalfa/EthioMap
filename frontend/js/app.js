@@ -21,11 +21,16 @@ panelToggle.addEventListener('click', () => {
   panelToggle.setAttribute('aria-label', isCollapsed ? 'Expand side panel' : 'Collapse side panel');
 });
 
+// Default view parameters: mobile shows full Ethiopia at zoom 5, desktop at zoom 6
+const isMobileMap = window.matchMedia('(max-width: 520px)').matches;
+const defaultCenter = isMobileMap ? [9.1, 40.0] : [9.03, 38.74];
+const defaultZoom = isMobileMap ? 5 : 6;
+
 // Create the map
 const map = L.map('map', {
     zoomControl: false,
     doubleClickZoom: true
-}).setView([9.03, 38.74], 6);
+}).setView(defaultCenter, defaultZoom);
 window.map = map;
 
 // Keep basemaps in their own layer so switching imagery never removes data,
@@ -50,6 +55,42 @@ basemapSelect?.addEventListener('change', () => {
     map.removeLayer(activeBasemap);
     activeBasemap = selectedBasemap.addTo(map);
 });
+
+// Mobile basemap dropdown handlers (active only on mobile devices)
+const mobileBasemapBtn = document.getElementById('mobile-basemap-btn');
+const mobileBasemapMenu = document.getElementById('mobile-basemap-menu');
+const mobileBasemapLabel = document.getElementById('mobile-basemap-label');
+
+if (mobileBasemapBtn && mobileBasemapMenu) {
+    mobileBasemapBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = !mobileBasemapMenu.hidden;
+        mobileBasemapMenu.hidden = isOpen;
+        mobileBasemapBtn.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    mobileBasemapMenu.querySelectorAll('.mobile-basemap-item').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const val = btn.dataset.value;
+            if (val && basemapSelect) {
+                basemapSelect.value = val;
+                basemapSelect.dispatchEvent(new Event('change'));
+            }
+            mobileBasemapMenu.querySelectorAll('.mobile-basemap-item').forEach(b => b.classList.toggle('active', b === btn));
+            if (mobileBasemapLabel) mobileBasemapLabel.textContent = val === 'satellite' ? 'Satellite Map' : 'Street Map';
+            mobileBasemapMenu.hidden = true;
+            mobileBasemapBtn.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!mobileBasemapBtn.contains(e.target) && !mobileBasemapMenu.contains(e.target)) {
+            mobileBasemapMenu.hidden = true;
+            mobileBasemapBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+}
 
 const layerRegistry = {};
 // Keeps references to saved database layers so search results can zoom to them.
@@ -306,7 +347,7 @@ searchInput?.addEventListener('input', () => {
     if (!query) {
         showSearchSuggestions();
         showAllDatasetLayers();
-        map.setView([9.03, 38.74], 6);
+        map.setView(defaultCenter, defaultZoom);
         if (searchMarker) {
             map.removeLayer(searchMarker);
             searchMarker = null;
@@ -341,7 +382,7 @@ document.getElementById("zoom-out")?.addEventListener("click", () => {
 
 // 1. Reset View / Locate Ethiopia Button (#reset-view)
 document.getElementById("reset-view")?.addEventListener("click", () => {
-    map.setView([9.03, 38.74], 6);
+    map.setView(defaultCenter, defaultZoom);
     map.closePopup();
     if (searchMarker) {
         map.removeLayer(searchMarker);

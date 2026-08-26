@@ -16,6 +16,11 @@ const allowedOrigins = new Set([
   'http://localhost:5500',
   'http://127.0.0.1:5500',
   'http://localhost:5000',
+  'http://127.0.0.1:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:8080',
+  'http://127.0.0.1:8080',
 ]);
 if (corsOriginEnv && corsOriginEnv !== '*') {
   corsOriginEnv.split(',').map(o => o.trim()).filter(Boolean).forEach(o => allowedOrigins.add(o));
@@ -25,7 +30,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     if (corsOriginEnv === '*' || allowedOrigins.has(origin)) return callback(null, true);
-    callback(new Error(`CORS: origin '${origin}' is not allowed.`));
+    callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

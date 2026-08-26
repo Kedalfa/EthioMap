@@ -201,8 +201,8 @@ textarea:focus {
 
 .top-nav .nav-item.active,
 .top-actions .nav-item.active {
-  color: #8ce4d1;
-  font-weight: 500;
+  color: white;
+  font-weight: 700;
 }
 
 .top-nav .nav-item.active::after,
@@ -217,11 +217,7 @@ textarea:focus {
   border-radius: 999px;
 }
 
-/* About Us is identified by color only to keep its header uncluttered. */
-.top-nav .nav-item.active[href="about.html"]::after,
-.top-actions .nav-item.active[href="about.html"]::after {
-  display: none;
-}
+/* About Us shows the same underline indicator as other active nav items. */
 
 .top-nav .profile-avatar-button {
   margin-left: 6px;

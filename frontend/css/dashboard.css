@@ -167,6 +167,9 @@ body {
   grid-row: 2 / span 10;
   grid-template-columns: 1fr;
   margin-top: 8px;
+  /* Allow the active tile ring (box-shadow) to render without clipping */
+  padding: 2px 3px;
+  overflow: visible;
 }
 
 .dash-main>.dash-intro,
@@ -1071,7 +1074,14 @@ textarea:focus {
   .dialog-actions { flex-wrap: wrap; }
   .dialog-actions button { flex: 1 1 130px; }
   h1 { font-size: 27px; }
-  .recent-row { grid-template-columns: 1fr; gap: 6px; }
+  .recent-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
   .profile-card { flex-direction: column; padding: 22px; }
 }
 
@@ -1628,55 +1638,103 @@ dialog.hover-card-modal::backdrop {
     display: none;
   }
 
+  /* Compact left drawer — semi-transparent backdrop */
   .dash-main.mobile-sidebar-open::before {
     position: fixed;
     z-index: 1000;
     inset: 0;
     display: block;
     content: "";
-    background: #f6faf9;
+    background: rgba(7, 27, 45, 0.45);
   }
 
+  /* Compact nav panel header card — positioned at middle-left of viewport */
   .dash-main.mobile-sidebar-open > .dash-intro {
     position: fixed;
     z-index: 1002;
-    top: 28px;
-    right: 20px;
-    left: 20px;
-    width: auto;
+    top: calc(50% - 130px);
+    left: 16px;
+    width: 260px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    background: #f6faf9;
+    border: 1px solid #d4e8e4;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(7, 27, 45, 0.12);
+  }
+
+  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+  }
+
+  .dash-main.mobile-sidebar-open > .dash-intro #sidebar-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
   }
 
   .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div {
     display: block;
-    padding-right: 48px;
+    padding-right: 36px;
     text-align: left;
   }
 
+  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div .eyebrow {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--teal, #00a78d);
+    text-transform: uppercase;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  /* Completely remove subtitle/description text on mobile */
+  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div p {
+    display: none !important;
+  }
+
+  /* Compact nav tile list — separated with a small clean gap below header */
   .dash-main.mobile-sidebar-open > .tile-grid {
     position: fixed;
     z-index: 1001;
-    top: 116px;
-    right: 20px;
-    bottom: 28px;
-    left: 20px;
+    top: calc(50% - 130px + 54px + 8px);
+    left: 16px;
+    right: auto;
+    bottom: auto;
+    width: 260px;
+    height: auto;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 4px;
     margin: 0;
+    padding: 8px;
+    background: #f6faf9;
+    border: 1px solid #d4e8e4;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(7, 27, 45, 0.18);
     overflow-y: auto;
+    max-height: calc(50vh);
   }
 
   .dash-main.mobile-sidebar-open > .tile-grid .tile,
   .dash-main.sidebar-collapsed.mobile-sidebar-open > .tile-grid .tile {
     min-height: 0;
-    padding: 16px;
+    padding: 10px 12px;
     align-items: center;
     justify-content: flex-start;
+    gap: 10px;
   }
 
   .dash-main.mobile-sidebar-open > .tile-grid .tile h2,
   .dash-main.sidebar-collapsed.mobile-sidebar-open > .tile-grid .tile h2 {
     display: block;
-    font-size: 15px;
+    font-size: 14px;
   }
 }

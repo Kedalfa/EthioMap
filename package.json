@@ -5,7 +5,7 @@
   "scripts": {
     "start": "concurrently --kill-others-on-fail --prefix-colors \"cyan,green\" --names \"BACKEND,FRONTEND\" \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "cd backend && npm start",
-    "start:frontend": "npx -y serve -l 5500 ./frontend",
+    "start:frontend": "npx -y serve -l tcp://127.0.0.1:5500 ./frontend",
     "build": "cd backend && npm run build",
     "setup": "cd backend && npm install",
     "db:setup": "cd backend && npm run db:setup"

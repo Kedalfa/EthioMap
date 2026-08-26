@@ -123,7 +123,7 @@ export async function initSidebar() {
   dashIntro.innerHTML = `
     <div class="sidebar-heading">
       <div>
-        <div id="dashboard-eyebrow" class="eyebrow">${isAdmin ? 'Admin Dashboard' : 'User Dashboard'}</div>
+        <div id="dashboard-eyebrow" class="eyebrow">${isAdmin ? 'Admin Dashboard' : 'Standard User Dashboard'}</div>
         <p id="dashboard-description">${isAdmin ? 'Manage datasets, users, and system activity.' : 'Manage datasets.'}</p>
       </div>
       <button id="sidebar-toggle" class="sidebar-toggle" type="button">
@@ -136,7 +136,8 @@ export async function initSidebar() {
   const toggleBtn = dashIntro.querySelector('#sidebar-toggle');
   if (toggleBtn) {
     setTogglePresentation(dashMain, toggleBtn);
-    toggleBtn.addEventListener('click', () => {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (window.matchMedia(MOBILE_NAV_QUERY).matches) {
         dashMain.classList.toggle('mobile-sidebar-open');
         setTogglePresentation(dashMain, toggleBtn);
@@ -145,6 +146,17 @@ export async function initSidebar() {
       const nowCollapsed = dashMain.classList.toggle('sidebar-collapsed');
       sessionStorage.setItem(STORAGE_KEY, nowCollapsed ? 'true' : 'false');
       setTogglePresentation(dashMain, toggleBtn);
+    });
+
+    // Close mobile sidebar when tapping outside the card
+    document.addEventListener('click', (e) => {
+      if (dashMain.classList.contains('mobile-sidebar-open')) {
+        const tileGridEl = dashMain.querySelector('.tile-grid');
+        if (!dashIntro.contains(e.target) && (!tileGridEl || !tileGridEl.contains(e.target))) {
+          dashMain.classList.remove('mobile-sidebar-open');
+          setTogglePresentation(dashMain, toggleBtn);
+        }
+      }
     });
   }
 

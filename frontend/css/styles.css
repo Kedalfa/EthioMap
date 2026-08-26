@@ -350,7 +350,7 @@ body {
   padding: 0;
   color: var(--ink);
   line-height: 1;
-  background: #f2f8f7;
+  background: white;
   border: 1px solid #d9e9e7;
   border-radius: 7px;
   cursor: pointer;
@@ -631,7 +631,7 @@ h1 {
   background: white;
 }
 
-.map-tools button {
+.map-tools > button {
   min-width: 45px;
   height: 42px;
   color: var(--ink);
@@ -641,7 +641,7 @@ h1 {
   border-right: 1px solid var(--line);
 }
 
-.map-tools button:last-child {
+.map-tools > button:last-child {
   border-right: 0;
 }
 
@@ -652,6 +652,15 @@ h1 {
 .map-tools #zoom-in,
 .map-tools #zoom-out {
   display: none;
+}
+
+.mobile-basemap-btn,
+.mobile-basemap-menu {
+  display: none !important;
+}
+
+.desktop-basemap-select {
+  display: block;
 }
 
 .map-tools .basemap-picker {
@@ -1142,7 +1151,11 @@ h1 {
 
   .map-search-wrap {
     top: 12px;
-    width: calc(100% - 92px);
+    /* Center between zoom controls and right edge, fully inside viewport */
+    left: 60px;
+    right: 12px;
+    width: auto;
+    transform: none;
   }
 
   .workspace .map-search-wrap input {
@@ -1159,6 +1172,7 @@ h1 {
   .map-tools {
     top: 62px;
     right: 12px;
+    width: fit-content;
   }
 
   .zoom-tools {
@@ -1166,71 +1180,196 @@ h1 {
     left: 12px;
   }
 
-  .map-tools button,
+  .map-tools > button,
   .zoom-tools button {
     min-width: 38px;
     width: 38px;
     height: 38px;
   }
 
-  .side-panel {
-    top: auto;
-    right: 10px;
-    bottom: 10px;
-    left: auto;
-    width: min(280px, calc(100% - 76px));
-    max-width: 280px;
-    height: min(42vh, 330px);
+  .map-tools {
+    top: 62px;
+    right: 12px;
+    width: fit-content;
+    overflow: visible;
+  }
+
+  .desktop-basemap-select {
+    display: none !important;
+  }
+
+  .map-tools .basemap-picker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 6px;
+    border-right: 1px solid var(--line);
+  }
+
+  .mobile-basemap-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    width: auto !important;
+    max-width: fit-content;
+    height: 28px !important;
+    padding: 0 8px 0 9px;
+    color: var(--ink);
+    font: 600 11px/1 "DM Sans", sans-serif;
     background: #f4faf9;
-    border-color: #b9ded6;
-    box-shadow: 0 14px 30px rgba(5, 32, 51, .22);
+    border: 1px solid #d9e9e7;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
+  .mobile-basemap-btn:hover {
+    background: #eaf5f3;
+    border-color: #c4dedb;
+  }
+
+  .basemap-caret {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-basemap-btn[aria-expanded="true"] .basemap-caret {
+    transform: rotate(180deg);
+  }
+
+  .mobile-basemap-menu {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 6px;
+    z-index: 950;
+    min-width: 115px;
+    width: max-content;
+    background: white;
+    border: 1px solid #d9e9e7;
+    border-radius: 7px;
+    box-shadow: 0 6px 18px rgba(5, 32, 51, 0.16);
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .mobile-basemap-menu[hidden] {
+    display: none !important;
+  }
+
+  .mobile-basemap-item {
+    width: 100%;
+    padding: 6px 10px;
+    text-align: left;
+    font: 600 11px "DM Sans", sans-serif;
+    color: var(--ink, #071b2d);
+    background: white;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+
+  .mobile-basemap-item:hover {
+    background: #f4faf9;
+    color: var(--teal, #00a78d);
+  }
+
+  .mobile-basemap-item.active {
+    background: #e6f7f3;
+    color: #087d6d;
+    font-weight: 700;
+  }
+
+  .side-panel {
+    width: min(290px, calc(100% - 28px));
+    max-width: 290px;
   }
 
   .side-panel:not(.collapsed) {
-    top: 122px;
+    /* Compact floating card — sized to content, not full-height */
+    top: 112px;
     right: auto;
-    bottom: 18px;
-    left: 18px;
-    width: 318px;
-    max-width: calc(100% - 36px);
+    bottom: auto;
+    left: 14px;
+    width: min(290px, calc(100% - 28px));
+    max-width: 290px;
     height: auto;
+    max-height: min(55vh, 380px);
+    overflow-y: auto;
     background: var(--panel);
     border-color: rgba(255, 255, 255, .7);
     box-shadow: 0 16px 38px #05203328;
   }
 
-  .side-panel .panel-head {
-    background: #e6f7f3;
+  .side-panel:not(.collapsed) .panel-head {
+    background: transparent;
+    padding: 16px 16px 12px;
   }
 
-  .side-panel.collapsed {
-    top: 100px;
-    right: auto;
-    bottom: auto;
-    left: 10px;
-    width: 52px;
-    height: 52px;
-    background: #087d6d;
-    border-color: #087d6d;
+  .side-panel:not(.collapsed) .panel-toggle {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: var(--ink);
+    background: white;
+    border: 1px solid #d9e9e7;
+    border-radius: 7px;
+    box-shadow: 0 1px 3px rgba(5, 32, 51, 0.08);
   }
 
   .side-panel.collapsed {
     top: 112px;
-    left: 18px;
-  }
-
-  .side-panel:not(.collapsed) .panel-head {
-    background: transparent;
+    right: auto;
+    bottom: auto;
+    left: 14px;
+    width: 34px;
+    height: 34px;
+    background: white;
+    border: 1px solid #d9e9e7;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(5, 32, 51, 0.15);
+    overflow: hidden;
+    padding: 0;
   }
 
   .side-panel.collapsed .panel-head {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border-bottom: 0;
+    display: grid;
+    place-items: center;
     background: transparent;
   }
 
   .side-panel.collapsed .panel-toggle {
-    color: white;
-    background: transparent;
-    border-color: rgba(255, 255, 255, .45);
+    position: static;
+    width: 100%;
+    height: 100%;
+    color: var(--ink);
+    background: white;
+    border: none;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    box-shadow: none;
   }
 
   .location-sidebar {
@@ -1248,26 +1387,7 @@ h1 {
   }
 }
 
-bottom: auto;
-left: 10px;
-width: 52px;
-height: 52px;
-}
 
-.location-sidebar {
-  top: auto;
-  right: 10px;
-  bottom: 10px;
-  left: 10px;
-  width: auto;
-  max-height: 58vh;
-}
-
-.map-badge {
-  right: 12px;
-  bottom: calc(min(58vh, 470px) + 20px);
-}
-}
 
 .location-sidebar-actions {
   display: flex;
