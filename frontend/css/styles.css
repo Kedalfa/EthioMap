@@ -1157,7 +1157,7 @@ h1 {
   }
 
   .map-tools {
-    top: 12px;
+    top: 62px;
     right: 12px;
   }
 
@@ -1177,10 +1177,30 @@ h1 {
     top: auto;
     right: 10px;
     bottom: 10px;
-    left: 10px;
-    width: calc(100% - 20px);
-    max-width: none;
-    height: min(58vh, 470px);
+    left: auto;
+    width: min(280px, calc(100% - 76px));
+    max-width: 280px;
+    height: min(42vh, 330px);
+    background: #f4faf9;
+    border-color: #b9ded6;
+    box-shadow: 0 14px 30px rgba(5, 32, 51, .22);
+  }
+
+  .side-panel:not(.collapsed) {
+    top: 122px;
+    right: auto;
+    bottom: 18px;
+    left: 18px;
+    width: 318px;
+    max-width: calc(100% - 36px);
+    height: auto;
+    background: var(--panel);
+    border-color: rgba(255, 255, 255, .7);
+    box-shadow: 0 16px 38px #05203328;
+  }
+
+  .side-panel .panel-head {
+    background: #e6f7f3;
   }
 
   .side-panel.collapsed {
@@ -1190,6 +1210,27 @@ h1 {
     left: 10px;
     width: 52px;
     height: 52px;
+    background: #087d6d;
+    border-color: #087d6d;
+  }
+
+  .side-panel.collapsed {
+    top: 112px;
+    left: 18px;
+  }
+
+  .side-panel:not(.collapsed) .panel-head {
+    background: transparent;
+  }
+
+  .side-panel.collapsed .panel-head {
+    background: transparent;
+  }
+
+  .side-panel.collapsed .panel-toggle {
+    color: white;
+    background: transparent;
+    border-color: rgba(255, 255, 255, .45);
   }
 
   .location-sidebar {

@@ -8,7 +8,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/dashboard.css?v=20260826-mobile-menu-icon">
   <link rel="stylesheet" href="css/theme.css">
 </head>
 
@@ -34,8 +34,11 @@
         </div>
         <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true"
           aria-label="Collapse dashboard navigation" title="Collapse navigation" onclick="toggleDashboardSidebar()">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <svg class="desktop-sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="m15 5-7 7 7 7"></path>
+          </svg>
+          <svg class="mobile-sidebar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 7h16M4 12h16M4 17h16"></path>
           </svg>
         </button>
       </div>
@@ -131,7 +134,7 @@
       document.getElementById('stat-actions').closest('.stat-card').style.display = 'none';
     }
   </script>
-  <script type="module" src="js/sidebar.js"></script>
+  <script type="module" src="js/sidebar.js?v=20260826-mobile-drawer"></script>
   <script type="module" src="js/profile-menu.js"></script>
 </body>
 
