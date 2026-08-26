@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071b2d">
   <title>EthioMap | About Us</title>
+  <script>if (localStorage.getItem('ethiomap_token')) document.documentElement.classList.add('auth-nav-pending');</script>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet">
@@ -17,11 +18,10 @@
   <header class="topbar">
     <a class="brand" href="Ethiomap.html"><span class="brand-mark">E</span><span><strong>EthioMap</strong><small>Map
           Information Subsystem</small></span></a>
-    <div class="top-nav" id="top-nav-actions" style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+    <div class="top-actions" id="top-nav-actions">
       <a class="nav-link nav-item" href="Ethiomap.html">Map</a>
       <a class="nav-link nav-item active" href="about.html" aria-current="page">About Us</a>
-      <a class="login-btn" href="login.html" id="nav-login-btn"
-        style="padding: 7px 13px; color: #8ce4d1; font-size: 12px; text-decoration: none; border: 1px solid #315066; border-radius: 7px; margin-left: auto;">Login</a>
+      <a class="login-btn" href="login.html" id="nav-login-btn">Sign in</a>
     </div>
   </header>
   <main>
@@ -63,8 +63,8 @@
       <div class="audience-list"><span>Students and researchers</span><span>Planners and decision makers</span><span>Map
           users and visitors</span><span>Spatial data managers</span></div>
     </section>
+    <footer>EthioMap · Map Information Subsystem</footer>
   </main>
-  <footer>EthioMap · Map Information Subsystem</footer>
 
   <!-- Dynamic Auth Navbar Updater -->
   <script type="module">
@@ -87,7 +87,7 @@
           dashLink.className = 'nav-link nav-item';
           dashLink.href = 'dashboard.html';
           dashLink.textContent = 'Dashboard';
-          topNavActions.appendChild(dashLink);
+          topNavActions.insertBefore(dashLink, topNavActions.querySelector('a[href="about.html"]'));
         }
 
         // Add Profile link button with icon if not present
@@ -98,9 +98,10 @@
           profileLink.type = 'button';
           profileLink.setAttribute('aria-label', 'Open profile');
           topNavActions.appendChild(profileLink);
-          initialiseProfileMenu();
+          await initialiseProfileMenu();
         }
       }
+      document.documentElement.classList.remove('auth-nav-pending');
     }
 
     updateNavbarForAuth();

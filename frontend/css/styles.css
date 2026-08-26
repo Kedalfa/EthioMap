@@ -1227,3 +1227,41 @@ height: 52px;
   bottom: calc(min(58vh, 470px) + 20px);
 }
 }
+
+.location-sidebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-dataset-geojson {
+  display: none;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  align-items: center;
+  padding: 0;
+  color: var(--ink);
+  background: #f2f8f7;
+  border: 1px solid #d9e9e7;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.download-dataset-geojson.is-visible {
+  display: inline-grid;
+}
+
+.download-dataset-geojson:hover {
+  background: #e6f7f3;
+}
+
+.download-dataset-geojson svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}

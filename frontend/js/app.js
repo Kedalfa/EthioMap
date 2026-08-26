@@ -60,11 +60,26 @@ function featurePopup(feature) {
 const locationSidebar = document.getElementById('location-sidebar');
 const locationSidebarContent = document.getElementById('location-sidebar-content');
 const closeLocationSidebar = document.getElementById('close-location-sidebar');
+const downloadDatasetGeojsonButton = document.getElementById('download-dataset-geojson');
+let selectedDatasetForDownload = null;
 
-function showLocationSidebar({ title = 'Selected place', coordinates, details = '' }) {
+function showLocationSidebar({ title = 'Selected place', coordinates, details = '', dataset = null }) {
+    selectedDatasetForDownload = dataset;
+    downloadDatasetGeojsonButton?.classList.toggle('is-visible', Boolean(dataset));
     locationSidebarContent.innerHTML = `<div class="location-card"><h3>${escapeHtml(title)}</h3><div class="location-field"><span>Coordinates</span><strong>${escapeHtml(coordinates)}</strong></div>${details ? `<div class="location-details"><span>Location information</span><div>${details}</div></div>` : ''}</div>`;
     locationSidebar.hidden = false;
 }
+
+downloadDatasetGeojsonButton?.addEventListener('click', () => {
+    if (!selectedDatasetForDownload) return;
+    const blob = new Blob([JSON.stringify(selectedDatasetForDownload.geojson, null, 2)], { type: 'application/geo+json' });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${String(selectedDatasetForDownload.name || 'dataset').replace(/[^a-z0-9-_]+/gi, '_')}.geojson`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+});
 
 function mostSpecificOsmName(result) {
     const address = result.address || {};
@@ -81,6 +96,8 @@ function mostSpecificOsmName(result) {
 
 closeLocationSidebar.addEventListener('click', () => {
     locationSidebar.hidden = true;
+    selectedDatasetForDownload = null;
+    downloadDatasetGeojsonButton?.classList.remove('is-visible');
     if (reverseMarker) {
         map.removeLayer(reverseMarker);
         reverseMarker = null;
@@ -206,7 +223,8 @@ async function selectLocation(location) {
         showLocationSidebar({
             title: location.name,
             coordinates: coordsText,
-            details: propsDetail
+            details: propsDetail,
+            dataset: { name: location.datasetName || location.name, geojson: savedLayer.layer.toGeoJSON() }
         });
 
         showFeedback(`Showing ${location.type || 'Dataset'}: "${location.name}".`);

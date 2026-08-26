@@ -128,10 +128,38 @@ body {
 
 /* Keep dashboard navigation in a left-hand rail while the main content stays on the right. */
 .dash-main {
+  width: calc(100% - 40px);
+  min-height: calc(100vh - 70px);
+  margin: 0 20px;
+  padding: 32px 20px 70px 0;
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  column-gap: 28px;
+  grid-template-columns: 260px minmax(0, 1fr);
+  column-gap: 52px;
   align-items: start;
+  position: relative;
+  background: linear-gradient(90deg, #f6faf9 0 280px, transparent 280px);
+  border-radius: 12px;
+}
+
+.dash-main::before {
+  position: absolute;
+  top: 32px;
+  bottom: 70px;
+  left: 280px;
+  width: 1px;
+  content: "";
+  background: var(--border-teal);
+}
+
+.dash-main::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -20px;
+  width: 20px;
+  content: "";
+  background: #f6faf9;
+  border-radius: 12px 0 0 12px;
 }
 
 .dash-main>.tile-grid {
@@ -170,13 +198,19 @@ body {
 }
 
 .sidebar-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+  position: relative;
+  min-height: 30px;
+}
+
+.sidebar-heading > div {
+  width: 100%;
+  text-align: center;
 }
 
 .sidebar-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
   flex: 0 0 auto;
   display: grid;
   width: 30px;
@@ -225,6 +259,11 @@ body {
 .dash-main.sidebar-collapsed {
   grid-template-columns: 74px minmax(0, 1fr);
   column-gap: 28px;
+  background: linear-gradient(90deg, #f6faf9 0 94px, transparent 94px);
+}
+
+.dash-main.sidebar-collapsed::before {
+  left: 94px;
 }
 
 .dash-main.sidebar-collapsed>.dash-intro {
@@ -1004,8 +1043,10 @@ textarea:focus {
 
 @media (max-width: 600px) {
   .topbar { padding: 0 20px; }
-  .dash-main, .page { width: calc(100% - 28px); padding-top: 30px; }
+  .dash-main, .page { width: calc(100% - 40px); padding-top: 30px; }
   .dash-main { display: block; }
+  .dash-main { background: transparent; }
+  .dash-main::before, .dash-main::after { display: none; }
   .dash-main.sidebar-collapsed { display: block; }
   .dash-main.sidebar-collapsed .sidebar-heading { justify-content: space-between; }
   .dash-main.sidebar-collapsed .sidebar-heading > div { display: block; }
