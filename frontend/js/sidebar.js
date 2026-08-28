@@ -100,13 +100,8 @@ export async function initSidebar() {
 
   const currentId = currentPageId();
 
-  // Restore collapsed state from sessionStorage
-  const isCollapsed = sessionStorage.getItem(STORAGE_KEY) === 'true';
-  if (isCollapsed) {
-    dashMain.classList.add('sidebar-collapsed');
-  } else {
-    dashMain.classList.remove('sidebar-collapsed');
-  }
+  // Sidebar always starts expanded (default state).
+  dashMain.classList.remove('sidebar-collapsed');
 
   // Get user role
   const user = await getMe();

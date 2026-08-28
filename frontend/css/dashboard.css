@@ -212,7 +212,7 @@ body {
 
 .sidebar-toggle {
   position: absolute;
-  top: 0;
+  top: -6px;
   right: 0;
   flex: 0 0 auto;
   display: grid;

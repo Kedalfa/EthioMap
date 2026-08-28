@@ -87,7 +87,12 @@
           dashLink.className = 'nav-link nav-item';
           dashLink.href = 'dashboard.html';
           dashLink.textContent = 'Dashboard';
-          topNavActions.insertBefore(dashLink, topNavActions.querySelector('a[href="about.html"]'));
+          const aboutLink = topNavActions.querySelector('a[href="about.html"]');
+          if (aboutLink && aboutLink.nextSibling) {
+            topNavActions.insertBefore(dashLink, aboutLink.nextSibling);
+          } else {
+            topNavActions.appendChild(dashLink);
+          }
         }
 
         // Add Profile link button with icon if not present
