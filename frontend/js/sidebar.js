@@ -177,6 +177,16 @@ export async function initSidebar() {
         </a>
       `;
     }).join('');
+
+  // Auto-close mobile menu when a nav tile is clicked.
+  tileGrid.addEventListener('click', (e) => {
+    if (!window.matchMedia(MOBILE_NAV_QUERY).matches) return;
+    const tile = e.target.closest('.tile');
+    if (!tile) return;
+    dashMain.classList.remove('mobile-sidebar-open');
+    const toggleBtn = dashMain.querySelector('#sidebar-toggle');
+    setTogglePresentation(dashMain, toggleBtn);
+  });
 }
 
 // Global hook for onclick in HTML if needed

@@ -1543,14 +1543,15 @@ dialog.hover-card-modal::backdrop {
   pointer-events: none !important;
 }
 
-/* Mobile dashboard: compact stats with a full-screen navigation drawer. */
+
+/* Mobile dashboard: compact icon-row menu anchored to the hamburger button. */
 @media (max-width: 600px) {
   .dash-main,
   .dash-main.sidebar-collapsed {
     width: calc(100% - 32px);
     min-height: calc(100vh - 64px);
     margin: 0 16px;
-    padding: 24px 0 48px;
+    padding: 20px 0 48px;
     display: block;
     background: transparent;
   }
@@ -1560,19 +1561,22 @@ dialog.hover-card-modal::backdrop {
     display: none;
   }
 
+  /* Hamburger button container — small absolute button top-left */
   .dash-main > .dash-intro {
     position: absolute;
-    z-index: 1;
-    top: 24px;
+    z-index: 10;
+    top: 20px;
     left: 0;
     width: 38px;
     margin: 0;
   }
 
+  /* Always hide the eyebrow/description text on mobile */
   .dash-main > .dash-intro .sidebar-heading > div {
     display: none;
   }
 
+  /* Hamburger button itself */
   .sidebar-toggle {
     position: static;
     width: 38px;
@@ -1594,10 +1598,12 @@ dialog.hover-card-modal::backdrop {
     display: block;
   }
 
+  /* Welcome title hidden on mobile dashboard */
   .dash-main > .dashboard-welcome {
     display: none;
   }
 
+  /* Management page headings */
   .dash-main > .dash-content .page-heading {
     align-items: center;
     padding: 0 46px;
@@ -1608,133 +1614,146 @@ dialog.hover-card-modal::backdrop {
     width: 100%;
   }
 
+  /* Stat cards: compact 3-col strip next to the hamburger */
   .dash-main > .stat-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin: 0 0 24px 48px;
+    gap: 6px;
+    margin: 0 0 18px 48px;
   }
 
   .stat-card {
     min-width: 0;
-    padding: 13px 7px;
+    padding: 8px 6px;
     text-align: center;
+    border-radius: 8px;
+    gap: 2px;
   }
 
   .stat-label {
-    font-size: 9px;
-    letter-spacing: .5px;
+    font-size: 8px;
+    letter-spacing: .3px;
   }
 
   .stat-value {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .dash-main > .recent-section {
     margin-top: 0;
   }
 
+  /* Tile-grid hidden by default; shown as icon row when menu open */
   .dash-main > .tile-grid {
     display: none;
   }
 
-  /* Compact left drawer — semi-transparent backdrop */
+  /* === VERTICAL FLOATING ICON MENU — no backdrop, no large panel === */
+
+  /* No dark overlay when menu open */
   .dash-main.mobile-sidebar-open::before {
-    position: fixed;
-    z-index: 1000;
-    inset: 0;
-    display: block;
-    content: "";
-    background: rgba(7, 27, 45, 0.45);
+    display: none;
   }
 
-  /* Compact nav panel header card — positioned at middle-left of viewport */
+  /* When open: dash-intro stays the same small 38px hamburger footprint */
   .dash-main.mobile-sidebar-open > .dash-intro {
-    position: fixed;
-    z-index: 1002;
-    top: calc(50% - 130px);
-    left: 16px;
-    width: 260px;
-    box-sizing: border-box;
-    padding: 12px 14px;
-    background: #f6faf9;
-    border: 1px solid #d4e8e4;
-    border-radius: 10px;
-    box-shadow: 0 4px 16px rgba(7, 27, 45, 0.12);
-  }
-
-  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading {
-    position: relative;
-    display: flex;
-    align-items: center;
-    min-height: 28px;
-  }
-
-  .dash-main.mobile-sidebar-open > .dash-intro #sidebar-toggle {
     position: absolute;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
+    z-index: 10;
+    top: 20px;
+    left: 0;
+    width: 38px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
   }
 
-  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div {
+  /* sidebar-heading: just a wrapper for the × button, no extra layout */
+  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading {
+    position: static;
     display: block;
-    padding-right: 36px;
-    text-align: left;
+    min-height: 38px;
   }
 
-  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div .eyebrow {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    color: var(--teal, #00a78d);
-    text-transform: uppercase;
-    margin: 0;
-    line-height: 1.2;
+  /* Close (×) button: stays same as hamburger */
+  .dash-main.mobile-sidebar-open > .dash-intro #sidebar-toggle {
+    position: static;
+    transform: none;
+    width: 38px;
+    height: 38px;
   }
 
-  /* Completely remove subtitle/description text on mobile */
-  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div p {
-    display: none !important;
+  /* Hide eyebrow text when menu is open */
+  .dash-main.mobile-sidebar-open > .dash-intro .sidebar-heading > div {
+    display: none;
   }
 
-  /* Compact nav tile list — separated with a small clean gap below header */
+  /* Tile-grid: vertical column of floating icons, left-aligned, below hamburger */
   .dash-main.mobile-sidebar-open > .tile-grid {
-    position: fixed;
-    z-index: 1001;
-    top: calc(50% - 130px + 54px + 8px);
-    left: 16px;
+    position: absolute;
+    z-index: 10;
+    /* 20px top offset + 38px button + 10px gap */
+    top: 68px;
+    left: 0;
     right: auto;
     bottom: auto;
-    width: 260px;
+    width: auto;
     height: auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     margin: 0;
-    padding: 8px;
-    background: #f6faf9;
-    border: 1px solid #d4e8e4;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(7, 27, 45, 0.18);
-    overflow-y: auto;
-    max-height: calc(50vh);
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
   }
 
+  /* Each icon tile: individual floating 38×38 button with its own appearance */
   .dash-main.mobile-sidebar-open > .tile-grid .tile,
   .dash-main.sidebar-collapsed.mobile-sidebar-open > .tile-grid .tile {
     min-height: 0;
-    padding: 10px 12px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
     align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
+    justify-content: center;
+    gap: 0;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: white;
+    border: 1px solid #d4e8e4;
+    box-shadow: 0 2px 8px rgba(7, 27, 45, 0.12);
+    transform: none;
   }
 
+  /* Active tile: teal highlight */
+  .dash-main.mobile-sidebar-open > .tile-grid .tile.active {
+    border-color: var(--teal);
+    background: #f4faf9;
+    box-shadow: 0 0 0 2px var(--teal);
+  }
+
+  /* Icon badge inside tile: centered, compact */
+  .dash-main.mobile-sidebar-open > .tile-grid .tile .tile-icon-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    margin: 0;
+    border: none;
+    background: transparent;
+  }
+
+  /* Hide text labels — icons only */
   .dash-main.mobile-sidebar-open > .tile-grid .tile h2,
   .dash-main.sidebar-collapsed.mobile-sidebar-open > .tile-grid .tile h2 {
-    display: block;
-    font-size: 14px;
+    display: none;
+  }
+
+  /* Hide tile arrow */
+  .dash-main.mobile-sidebar-open > .tile-grid .tile .tile-arrow {
+    display: none;
   }
 }
+
