@@ -967,6 +967,31 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+.dataset-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.dataset-choice-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  text-align: left;
+  font: 500 13px "DM Sans", sans-serif;
+  color: var(--teal);
+  background: var(--light-teal, #e6f7f3);
+  border: 1px solid var(--border-teal, #d9e9e7);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dataset-choice-btn:hover {
+  background: #d4f2eb;
+}
+
 .map-badge {
   position: absolute;
   z-index: 800;

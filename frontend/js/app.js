@@ -101,10 +101,24 @@ function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
-function featurePopup(feature) {
-    const properties = feature.properties || {};
-    const rows = Object.entries(properties).slice(0, 6).map(([key, value]) => `<strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}`);
-    return rows.length ? rows.join('<br>') : 'GeoJSON feature';
+function isInternalAttribute(key) {
+    return key.startsWith('_') || key === '__v';
+}
+
+function formatPropertyValue(val) {
+    if (val === null || val === undefined) return '—';
+    if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+    if (typeof val === 'number') {
+        return Number.isInteger(val) ? String(val) : val.toLocaleString(undefined, { maximumFractionDigits: 4 });
+    }
+    if (typeof val === 'object') {
+        try {
+            return Array.isArray(val) ? val.join(', ') : JSON.stringify(val);
+        } catch {
+            return String(val);
+        }
+    }
+    return String(val);
 }
 
 const locationSidebar = document.getElementById('location-sidebar');
@@ -112,11 +126,48 @@ const locationSidebarContent = document.getElementById('location-sidebar-content
 const closeLocationSidebar = document.getElementById('close-location-sidebar');
 const downloadDatasetGeojsonButton = document.getElementById('download-dataset-geojson');
 let selectedDatasetForDownload = null;
+let activeDatasetKey = null;
+
+function displayFeatureInfo(feature, datasetName = '', datasetGeojson = null) {
+    if (!feature) return;
+    const rawProps = feature.properties || {};
+
+    // Use the dataset name as the card title
+    const title = datasetName || 'Feature Details';
+
+    selectedDatasetForDownload = datasetGeojson ? { name: datasetName || 'dataset', geojson: datasetGeojson } : null;
+    downloadDatasetGeojsonButton?.classList.toggle('is-visible', Boolean(selectedDatasetForDownload));
+
+    // Display all non-empty, non-internal properties from the feature
+    const fieldsHtml = Object.entries(rawProps)
+        .filter(([key, val]) =>
+            !isInternalAttribute(key) &&
+            val !== null && val !== undefined && val !== ''
+        )
+        .map(([key, val]) =>
+            `<div class="location-field"><span>${escapeHtml(key)}</span><strong>${escapeHtml(formatPropertyValue(val))}</strong></div>`
+        )
+        .join('');
+
+    locationSidebarContent.innerHTML = `<div class="location-card"><h3>${escapeHtml(title)}</h3>${fieldsHtml}</div>`;
+    locationSidebar.hidden = false;
+    showFeedback(`Selected: ${title}`);
+}
+
+
 
 function showLocationSidebar({ title = 'Selected place', coordinates, details = '', dataset = null }) {
     selectedDatasetForDownload = dataset;
     downloadDatasetGeojsonButton?.classList.toggle('is-visible', Boolean(dataset));
-    locationSidebarContent.innerHTML = `<div class="location-card"><h3>${escapeHtml(title)}</h3><div class="location-field"><span>Coordinates</span><strong>${escapeHtml(coordinates)}</strong></div>${details ? `<div class="location-details"><span>Location information</span><div>${details}</div></div>` : ''}</div>`;
+    let content = `<div class="location-card"><h3>${escapeHtml(title)}</h3>`;
+    if (coordinates) {
+        content += `<div class="location-field"><span>Coordinates</span><strong>${escapeHtml(coordinates)}</strong></div>`;
+    }
+    if (details) {
+        content += `<div class="location-details"><span>Location information</span><div>${details}</div></div>`;
+    }
+    content += `</div>`;
+    locationSidebarContent.innerHTML = content;
     locationSidebar.hidden = false;
 }
 
@@ -131,31 +182,162 @@ downloadDatasetGeojsonButton?.addEventListener('click', () => {
     setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
 });
 
-function mostSpecificOsmName(result) {
-    const address = result.address || {};
-    if (result.name) return result.name;
-    if (address.amenity) return address.amenity;
-    if (address.shop) return address.shop;
-    if (address.tourism) return address.tourism;
-    if (address.building) return address.building;
-    if (address.house_number && address.road) return `${address.house_number} ${address.road}`;
-    return address.road || address.neighbourhood || address.suburb || address.village ||
-        address.town || address.city || address.county || address.state || address.country ||
-        'Selected place';
-}
-
 closeLocationSidebar.addEventListener('click', () => {
     locationSidebar.hidden = true;
     selectedDatasetForDownload = null;
     downloadDatasetGeojsonButton?.classList.remove('is-visible');
-    if (reverseMarker) {
-        map.removeLayer(reverseMarker);
-        reverseMarker = null;
-    }
     map.closePopup();
 });
 
-function createGeoJsonLayer(geojson, color) {
+// Point-in-geometry algorithms for robust active-dataset feature identification
+function pointInPolygon(pt, ring) {
+    const x = pt.lng, y = pt.lat;
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0], yi = ring[i][1];
+        const xj = ring[j][0], yj = ring[j][1];
+        const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+function pointInPolygonGeometry(pt, coords) {
+    if (!coords || !coords.length) return false;
+    if (!pointInPolygon(pt, coords[0])) return false;
+    for (let i = 1; i < coords.length; i++) {
+        if (pointInPolygon(pt, coords[i])) return false;
+    }
+    return true;
+}
+
+function pointInMultiPolygonGeometry(pt, coords) {
+    if (!coords) return false;
+    for (let i = 0; i < coords.length; i++) {
+        if (pointInPolygonGeometry(pt, coords[i])) return true;
+    }
+    return false;
+}
+
+function pointToSegmentDistance(p, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const l2 = dx * dx + dy * dy;
+    if (l2 === 0) return p.distanceTo(a);
+    let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return p.distanceTo(L.point(a.x + t * dx, a.y + t * dy));
+}
+
+function featureContainsPoint(feature, latlng) {
+    if (!feature || !feature.geometry) return false;
+    const geom = feature.geometry;
+    const type = geom.type;
+    const coords = geom.coordinates;
+
+    if (type === 'Polygon') {
+        return pointInPolygonGeometry(latlng, coords);
+    } else if (type === 'MultiPolygon') {
+        return pointInMultiPolygonGeometry(latlng, coords);
+    } else if (type === 'Point') {
+        if (!coords || coords.length < 2) return false;
+        const p1 = map.latLngToLayerPoint(latlng);
+        const p2 = map.latLngToLayerPoint([coords[1], coords[0]]);
+        return p1.distanceTo(p2) <= 15;
+    } else if (type === 'MultiPoint') {
+        if (!coords) return false;
+        const p1 = map.latLngToLayerPoint(latlng);
+        for (const c of coords) {
+            const p2 = map.latLngToLayerPoint([c[1], c[0]]);
+            if (p1.distanceTo(p2) <= 15) return true;
+        }
+        return false;
+    } else if (type === 'LineString') {
+        if (!coords || coords.length < 2) return false;
+        const p = map.latLngToLayerPoint(latlng);
+        const pts = coords.map(c => map.latLngToLayerPoint([c[1], c[0]]));
+        for (let i = 0; i < pts.length - 1; i++) {
+            if (pointToSegmentDistance(p, pts[i], pts[i + 1]) <= 10) return true;
+        }
+        return false;
+    } else if (type === 'MultiLineString') {
+        if (!coords) return false;
+        const p = map.latLngToLayerPoint(latlng);
+        for (const line of coords) {
+            const pts = line.map(c => map.latLngToLayerPoint([c[1], c[0]]));
+            for (let i = 0; i < pts.length - 1; i++) {
+                if (pointToSegmentDistance(p, pts[i], pts[i + 1]) <= 10) return true;
+            }
+        }
+        return false;
+    } else if (type === 'GeometryCollection') {
+        if (!geom.geometries) return false;
+        for (const g of geom.geometries) {
+            if (featureContainsPoint({ type: 'Feature', geometry: g }, latlng)) return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+function findFeatureInDataset(entry, latlng) {
+    if (!entry || !entry.active || !entry.geojson) return null;
+    const geojson = entry.geojson;
+    const features = geojson.type === 'FeatureCollection'
+        ? geojson.features
+        : (geojson.type === 'Feature' ? [geojson] : []);
+
+    for (let i = features.length - 1; i >= 0; i--) {
+        const feature = features[i];
+        if (featureContainsPoint(feature, latlng)) {
+            return { feature, datasetName: entry.name, geojson };
+        }
+    }
+    return null;
+}
+
+function showDatasetSelector(matches) {
+    selectedDatasetForDownload = null;
+    downloadDatasetGeojsonButton?.classList.remove('is-visible');
+
+    const listHtml = matches.map(({ match }, idx) =>
+        `<button type="button" class="dataset-choice-btn" data-idx="${idx}">${escapeHtml(datasetDisplayName(match.datasetName))}</button>`
+    ).join('');
+
+    locationSidebarContent.innerHTML = `<div class="location-card"><h3>Select dataset</h3><div class="dataset-choice-list">${listHtml}</div></div>`;
+    locationSidebar.hidden = false;
+
+    locationSidebarContent.querySelectorAll('.dataset-choice-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const { match } = matches[parseInt(btn.dataset.idx, 10)];
+            displayFeatureInfo(match.feature, match.datasetName, match.geojson);
+        });
+    });
+}
+
+function handleMapFeatureClick(latlng) {
+    if (mapMode === 'distance' || mapMode === 'area') {
+        addMeasurementPoint(latlng);
+        return;
+    }
+
+    // Check every active dataset for a feature at the clicked location
+    const matches = [];
+    for (const [key, entry] of Object.entries(layerRegistry)) {
+        if (!entry.active) continue;
+        const match = findFeatureInDataset(entry, latlng);
+        if (match) matches.push({ key, match });
+    }
+
+    if (matches.length === 0) return;          // nothing at this location
+    if (matches.length === 1) {
+        displayFeatureInfo(matches[0].match.feature, matches[0].match.datasetName, matches[0].match.geojson);
+        return;
+    }
+    showDatasetSelector(matches);              // 2+ overlapping datasets
+}
+
+function createGeoJsonLayer(geojson, color, datasetName = 'Uploaded Dataset', datasetGeojson = null) {
+    const rawGeojson = datasetGeojson || geojson;
     return L.geoJSON(geojson, {
         style: { color, weight: 2, fillColor: color, fillOpacity: .2 },
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 6, color, fillColor: color, fillOpacity: .8 }),
@@ -167,7 +349,7 @@ function createGeoJsonLayer(geojson, color) {
                     return;
                 }
                 L.DomEvent.stopPropagation(event);
-                reverseGeocode(event.latlng);
+                handleMapFeatureClick(event.latlng);
             });
         }
     });
@@ -188,16 +370,21 @@ function setLayerVisibility(entry, visible) {
 }
 
 function showAllDatasetLayers() {
+    activeDatasetKey = null;
     Object.values(layerRegistry).forEach((entry) => setLayerVisibility(entry, true));
     updateActiveLayerCount();
 }
 
 function showOnlyDatasetLayer(location) {
-    Object.values(layerRegistry).forEach((entry) => {
+    Object.entries(layerRegistry).forEach(([key, entry]) => {
         const sameDataset = location.datasetId && entry.datasetId === location.datasetId;
         const sameName = !location.datasetId
             && datasetDisplayName(entry.name).toLowerCase() === datasetDisplayName(location.name).toLowerCase();
-        setLayerVisibility(entry, Boolean(sameDataset || sameName));
+        const visible = Boolean(sameDataset || sameName);
+        setLayerVisibility(entry, visible);
+        if (visible) {
+            activeDatasetKey = key;
+        }
     });
     updateActiveLayerCount();
 }
@@ -262,20 +449,22 @@ async function selectLocation(location) {
         searchResults.hidden = true;
         if (featureLayer?.openPopup) featureLayer.openPopup();
 
-        // Display details in location sidebar
-        const propsDetail = location.properties
-            ? Object.entries(location.properties).map(([k, v]) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}`).join('<br>')
-            : `Dataset: ${escapeHtml(location.datasetName || location.name)}`;
-        const coordsText = (location.coordinates && location.coordinates[0])
-            ? `${location.coordinates[0].toFixed(5)}, ${location.coordinates[1].toFixed(5)}`
-            : 'Geospatial Dataset';
-
-        showLocationSidebar({
-            title: location.name,
-            coordinates: coordsText,
-            details: propsDetail,
-            dataset: { name: location.datasetName || location.name, geojson: savedLayer.layer.toGeoJSON() }
-        });
+        // Use the same displayFeatureInfo path as a direct map click so that
+        // Search and map-click always produce identical feature information.
+        const savedEntry = Object.values(layerRegistry).find(
+            (e) => e.datasetId === location.datasetId || datasetDisplayName(e.name).toLowerCase() === datasetDisplayName(location.name).toLowerCase()
+        );
+        if (savedEntry && savedEntry.geojson) {
+            // Find the first feature whose geometry contains the dataset centroid,
+            // or fall back to the first feature in the collection.
+            const features = savedEntry.geojson.type === 'FeatureCollection'
+                ? savedEntry.geojson.features
+                : (savedEntry.geojson.type === 'Feature' ? [savedEntry.geojson] : []);
+            const targetFeature = features[0] || null;
+            if (targetFeature) {
+                displayFeatureInfo(targetFeature, datasetDisplayName(savedEntry.name), savedEntry.geojson);
+            }
+        }
 
         return;
     }
@@ -288,7 +477,7 @@ async function selectLocation(location) {
             .bindPopup(`<strong>${escapeHtml(location.name)}</strong><br>${escapeHtml(location.type || 'Location')}`).openPopup();
         
         const propsDetail = location.properties
-            ? Object.entries(location.properties).map(([k, v]) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}`).join('<br>')
+            ? Object.entries(location.properties).slice(0, 3).map(([k, v]) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}`).join('<br>')
             : '';
 
         showLocationSidebar({
@@ -457,7 +646,6 @@ let measurementPoints = [];
 let measurementLine;
 let measurementShape;
 let measurementMarkers = [];
-let reverseMarker;
 
 function showFeedback(message) {
     feedback.textContent = message;
@@ -542,33 +730,11 @@ function addMeasurementPoint(latlng) {
     }
 }
 
-async function reverseGeocode(latlng) {
-    if (reverseMarker) map.removeLayer(reverseMarker);
-    reverseMarker = L.marker(latlng).addTo(map);
-    const coordinates = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
-    showLocationSidebar({ title: 'Loading location...', coordinates, details: 'Looking up location information...' });
-    showFeedback('Looking up location information...');
-    try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${latlng.lat}&lon=${latlng.lng}`, {
-            headers: { Accept: 'application/json' }
-        });
-        if (!response.ok) throw new Error(`Reverse geocoding failed with status ${response.status}`);
-        const result = await response.json();
-        const address = result.display_name || coordinates;
-        showLocationSidebar({ title: mostSpecificOsmName(result), coordinates, details: escapeHtml(address) });
-        showFeedback(`${address} (${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)})`);
-    } catch (error) {
-        showLocationSidebar({ title: 'Selected place', coordinates, details: 'Address lookup unavailable.' });
-        showFeedback(`Address lookup unavailable. Coordinates: ${coordinates}`);
-    }
-}
-
 distanceButton.addEventListener('click', () => setMapMode('distance'));
 areaButton.addEventListener('click', () => setMapMode('area'));
 clearMeasurementButton.addEventListener('click', clearMeasurement);
 map.on('click', (event) => {
-    if (mapMode === 'distance' || mapMode === 'area') addMeasurementPoint(event.latlng);
-    else reverseGeocode(event.latlng);
+    handleMapFeatureClick(event.latlng);
 });
 
 // The map can preview saved datasets publicly; mutations require the same JWT
@@ -581,9 +747,10 @@ const API_BASE = window.ETHIOMAP_API_BASE || 'http://localhost:4000';
 function addUploadedLayer(file, geojson, datasetId = null, fitToLayer = true) {
     const key = `upload-${Date.now()}`;
     const color = '#7257a5';
-    const layer = createGeoJsonLayer(geojson, color).addTo(map);
-    layerRegistry[key] = { layer, active: true, name: file.name, datasetId, metadata: file.metadata || { description: '', coordinateReferenceSystem: 'EPSG:4326', owner: '', source: '' } };
+    const layer = createGeoJsonLayer(geojson, color, file.name, geojson).addTo(map);
+    layerRegistry[key] = { layer, active: true, name: file.name, datasetId, metadata: file.metadata || { description: '', coordinateReferenceSystem: 'EPSG:4326', owner: '', source: '' }, geojson };
     if (datasetId) savedDatasetLayers.set(datasetId, layerRegistry[key]);
+    if (fitToLayer) activeDatasetKey = key;
 
     if (uploadedLayers) {
         const row = document.createElement('div');
@@ -711,6 +878,7 @@ async function removeDataset(key) {
             savedDatasetLayers.delete(entry.datasetId);
         }
         map.removeLayer(entry.layer); if (entry.row) entry.row.remove(); delete layerRegistry[key]; updateActiveLayerCount();
+        if (activeDatasetKey === key) activeDatasetKey = null;
         showFeedback(`Dataset "${entry.name}" removed.`);
     } catch (error) { showFeedback(error.message); }
 }
@@ -725,20 +893,12 @@ async function loadBaseSpatialLayers() {
             if (!geojson.features || !geojson.features.length) continue;
 
             const colorMap = { regions: '#087d6d', cities: '#e76f51', corridors: '#2a9d8f' };
+            const displayName = `Base ${layerName.toUpperCase()}`;
             const color = colorMap[layerName] || '#087d6d';
-            
-            const layerObj = L.geoJSON(geojson, {
-                style: { color, weight: 2, fillColor: color, fillOpacity: .2 },
-                pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 7, color, fillColor: color, fillOpacity: .85 }),
-                onEachFeature: (feature, layer) => {
-                    const name = feature.properties?.name || feature.id || layerName;
-                    layer.bindPopup(`<strong>${escapeHtml(name)}</strong><br><em>${escapeHtml(layerName.toUpperCase())}</em>`);
-                }
-            }).addTo(map);
+            const layerObj = createGeoJsonLayer(geojson, color, displayName, geojson).addTo(map);
 
             const key = `base-${layerName}`;
-            layerRegistry[key] = { layer: layerObj, active: true, name: `Base ${layerName.toUpperCase()}`, datasetId: null };
-
+            layerRegistry[key] = { layer: layerObj, active: true, name: displayName, datasetId: null, geojson };
         }
     } catch (e) {
         console.warn('Base spatial layers could not be loaded from API:', e);
