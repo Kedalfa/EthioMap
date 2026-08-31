@@ -46,7 +46,7 @@ app.get('/api/datasets', async (_request, response) => {
   } catch { response.status(500).json({ error: 'Could not load datasets.' }); }
 });
 
-// Search across datasets and dataset_features tables.
+// Search saved datasets only.
 app.get('/api/datasets/search', async (request, response) => {
   const queryParam = String(request.query.q || '').trim();
   if (!queryParam) {
@@ -74,30 +74,6 @@ app.get('/api/datasets/search', async (request, response) => {
         type: 'Dataset',
         featureCount: row.feature_count,
         metadata: row.metadata
-      });
-    }
-
-    // 2. Search dataset_features table
-    const featuresRes = await pool.query(`
-      SELECT f.id, f.dataset_id, f.feature_index, f.properties, d.name as dataset_name,
-             ST_Y(ST_Centroid(ST_Transform(f.geom, 4326))) as lat,
-             ST_X(ST_Centroid(ST_Transform(f.geom, 4326))) as lng
-      FROM dataset_features f
-      JOIN datasets d ON f.dataset_id = d.id
-      WHERE f.properties::text ILIKE $1
-      LIMIT 15
-    `, [searchTerm]);
-    for (const row of featuresRes.rows) {
-      const featureName = row.properties?.name || row.properties?.Name || row.properties?.title || `Feature #${row.feature_index + 1}`;
-      results.push({
-        id: `df-${row.id}`,
-        datasetId: row.dataset_id,
-        featureIndex: row.feature_index,
-        datasetName: row.dataset_name,
-        name: featureName,
-        type: 'Dataset Feature',
-        coordinates: [Number(row.lat), Number(row.lng)],
-        properties: row.properties
       });
     }
 

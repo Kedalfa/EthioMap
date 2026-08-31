@@ -73,15 +73,14 @@ npm install
 
 ---
 
-### 5. Setup Database Schema & Seed Data
+### 5. Build and set up the database
 
-Initialize the PostGIS tables, enable the extension, and seed the mock data in one command:
+Build the backend and initialize the PostGIS tables:
 ```bash
+npm run build
 npm run db:setup
 ```
-This runs `src/setupDb.ts` programmatically, which applies the commands in:
-- `schema.sql`: Enables the PostGIS extension, creates tables (`regions`, `cities`, `corridors`), and adds spatial GIST indexes.
-- `seed.sql`: Inserts matching mock features using `ST_GeomFromGeoJSON` at WGS 84 (SRID 4326) coordinates.
+This applies `../database/schema.sql`, which enables PostGIS, creates the dataset, user, and activity-log tables, and adds spatial indexes. If `database/seed.sql` is present, it is applied automatically; otherwise the step completes without seed data.
 
 ---
 

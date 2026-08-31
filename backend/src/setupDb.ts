@@ -14,8 +14,8 @@ async function setup() {
     console.log('Database connection verified.');
 
     // Resolve file paths
-    const schemaPath = path.resolve(__dirname, '../schema.sql');
-    const seedPath = path.resolve(__dirname, '../seed.sql');
+    const schemaPath = path.resolve(__dirname, '../../database/schema.sql');
+    const seedPath = path.resolve(__dirname, '../../database/seed.sql');
 
     // 1. Run schema commands
     console.log(`Reading schema from: ${schemaPath}`);
@@ -25,11 +25,15 @@ async function setup() {
     console.log('Schema applied successfully.');
 
     // 2. Run seed commands
-    console.log(`Reading seed data from: ${seedPath}`);
-    const seedSql = fs.readFileSync(seedPath, 'utf8');
-    console.log('Inserting seed records (regions, cities, corridors)...');
-    await pool.query(seedSql);
-    console.log('Database seeded successfully.');
+    if (fs.existsSync(seedPath)) {
+      console.log(`Reading seed data from: ${seedPath}`);
+      const seedSql = fs.readFileSync(seedPath, 'utf8');
+      console.log('Inserting seed records (regions, cities, corridors)...');
+      await pool.query(seedSql);
+      console.log('Database seeded successfully.');
+    } else {
+      console.log('No seed file found; skipping seed data.');
+    }
 
     console.log('Database setup complete. Closing pool.');
     await pool.end();

@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "node --watch dist/server.js",
-    "db:setup": "node dist/setupDb.js"
+    "db:setup": "npm run build && node dist/setupDb.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

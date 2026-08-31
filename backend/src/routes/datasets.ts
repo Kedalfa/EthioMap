@@ -134,7 +134,7 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
-// 1b. GET /api/datasets/search?q=query - Search exclusively across datasets and dataset_features tables
+// 1b. GET /api/datasets/search?q=query - Search saved datasets only.
 router.get('/search', async (req: Request, res: Response) => {
   const queryParam = String(req.query.q || '').trim();
   if (!queryParam) {
@@ -162,30 +162,6 @@ router.get('/search', async (req: Request, res: Response) => {
         type: 'Dataset',
         featureCount: row.feature_count,
         metadata: row.metadata
-      });
-    }
-
-    // 3. Search dataset_features table (features stored inside datasets in PostgreSQL)
-    const featuresRes = await pool.query(`
-      SELECT f.id, f.dataset_id, f.feature_index, f.properties, d.name as dataset_name,
-             ST_Y(ST_Centroid(ST_Transform(f.geom, 4326))) as lat,
-             ST_X(ST_Centroid(ST_Transform(f.geom, 4326))) as lng
-      FROM dataset_features f
-      JOIN datasets d ON f.dataset_id = d.id
-      WHERE f.properties::text ILIKE $1
-      LIMIT 15
-    `, [searchTerm]);
-    for (const row of featuresRes.rows) {
-      const featureName = row.properties?.name || row.properties?.Name || row.properties?.title || `Feature #${row.feature_index + 1}`;
-      results.push({
-        id: `df-${row.id}`,
-        datasetId: row.dataset_id,
-        featureIndex: row.feature_index,
-        datasetName: row.dataset_name,
-        name: featureName,
-        type: 'Dataset Feature',
-        coordinates: [Number(row.lat), Number(row.lng)],
-        properties: row.properties
       });
     }
 

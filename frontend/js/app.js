@@ -757,13 +757,6 @@ function addUploadedLayer(file, geojson, datasetId = null, fitToLayer = true) {
         row.className = 'layer-row uploaded-layer-row';
         row.innerHTML = `<span class="layer-color" style="background:${color}"></span><div class="layer-info"><strong class="dataset-title">${escapeHtml(file.name)}</strong><span class="dataset-subtitle">Uploaded GeoJSON</span></div><div class="dataset-actions"><button type="button" class="dataset-edit">Edit</button><button type="button" class="dataset-remove">Remove</button><div class="form-check form-switch m-0"><input class="form-check-input layer-toggle" type="checkbox" checked></div></div>`;
         layerRegistry[key].row = row;
-        const toggle = row.querySelector('.layer-toggle');
-        toggle.addEventListener('change', () => {
-            layerRegistry[key].active = toggle.checked;
-            if (toggle.checked) layer.addTo(map);
-            else map.removeLayer(layer);
-            updateActiveLayerCount();
-        });
         row.querySelector('.dataset-edit').addEventListener('click', () => openMetadataEditor(key));
         row.querySelector('.dataset-remove').addEventListener('click', () => removeDataset(key));
         uploadedLayers.appendChild(row);
@@ -883,30 +876,7 @@ async function removeDataset(key) {
     } catch (error) { showFeedback(error.message); }
 }
 
-async function loadBaseSpatialLayers() {
-    try {
-        const layers = ['regions', 'cities', 'corridors'];
-        for (const layerName of layers) {
-            const res = await fetch(`${API_BASE}/api/layers/${layerName}`);
-            if (!res.ok) continue;
-            const geojson = await res.json();
-            if (!geojson.features || !geojson.features.length) continue;
-
-            const colorMap = { regions: '#087d6d', cities: '#e76f51', corridors: '#2a9d8f' };
-            const displayName = `Base ${layerName.toUpperCase()}`;
-            const color = colorMap[layerName] || '#087d6d';
-            const layerObj = createGeoJsonLayer(geojson, color, displayName, geojson).addTo(map);
-
-            const key = `base-${layerName}`;
-            layerRegistry[key] = { layer: layerObj, active: true, name: displayName, datasetId: null, geojson };
-        }
-    } catch (e) {
-        console.warn('Base spatial layers could not be loaded from API:', e);
-    }
-}
-
 async function loadSavedDatasets() {
-    await loadBaseSpatialLayers();
     try {
         const response = await fetch(`${API_BASE}/api/datasets`);
         if (!response.ok) return;
